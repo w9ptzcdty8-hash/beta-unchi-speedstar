@@ -2,9 +2,13 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <title>MRS WORKS</title>
+    <title>うんちスピードスター | MRS GAMES</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,12 +17,161 @@
 
     <main id="app">
 
-        <!--
-            アプリのメインコンテンツ
-        -->
+        <!-- ============================
+             タイトル画面
+        ============================= -->
+        <section id="screen-title" class="screen is-active">
+            <div class="title-blob" aria-hidden="true"></div>
+            <h1 class="game-title">うんち<br>スピードスター</h1>
+            <p class="game-sub">「うんち」が出たら、はやくタップ！</p>
+
+            <div class="menu">
+                <button id="btn-goto-single" class="btn btn-main">ひとりであそぶ</button>
+                <button id="btn-goto-multi" class="btn btn-main btn-multi-color">みんなであそぶ</button>
+                <button id="btn-goto-highscore" class="btn btn-sub-wide">ハイスコア</button>
+            </div>
+
+            <!-- Webゲームのため、タイトル画面のみにMRS GAMESリンクを設置 -->
+            <div class="footer-link-container">
+                <a href="https://mrs-games.pages.dev/" target="_blank" rel="noopener noreferrer" class="btn-footer-link">MRS GAMES</a>
+            </div>
+        </section>
+
+        <!-- ============================
+             ひとりであそぶ：プレイ画面
+        ============================= -->
+        <section id="screen-single" class="screen">
+            <div class="flash-overlay" id="single-flash"></div>
+
+            <div class="game-hud">
+                <div class="round-times" id="single-round-times"></div>
+            </div>
+
+            <div class="word-stage">
+                <div class="word-blob" id="single-word-blob">
+                    <span class="word-text" id="single-word-text"></span>
+                </div>
+                <p class="word-hint">「うんち」だけタップ！</p>
+            </div>
+
+            <div class="game-footer">
+                <div class="total-time" id="single-total-time">合計タイム：0.00秒</div>
+                <button id="btn-single-quit" class="btn btn-sub">やめる</button>
+            </div>
+        </section>
+
+        <!-- ============================
+             ひとりであそぶ：結果画面
+        ============================= -->
+        <section id="screen-single-result" class="screen">
+            <h2 class="result-title">けっか発表！</h2>
+
+            <div id="single-result-newrecord" class="new-record is-hidden">🎉 ハイスコア更新！</div>
+
+            <div class="result-total" id="single-result-total">0.00秒</div>
+            <div class="result-detail" id="single-result-detail"></div>
+
+            <div class="menu">
+                <button id="btn-single-retry" class="btn btn-main">もう一度あそぶ</button>
+                <button id="btn-single-to-title" class="btn btn-sub-wide ad-safe-bottom">タイトルへ</button>
+            </div>
+        </section>
+
+        <!-- ============================
+             みんなであそぶ：セットアップ画面
+        ============================= -->
+        <section id="screen-multi-setup" class="screen">
+            <h2 class="screen-title">みんなであそぶ</h2>
+
+            <label class="field-label" for="input-player-name">プレイヤー名（未入力でランダム）</label>
+            <input id="input-player-name" class="text-input" type="text" maxlength="10" placeholder="なまえを入力">
+
+            <p class="field-label">あたらしいルームを作る</p>
+            <div class="menu">
+                <button class="btn btn-main btn-playercount" data-count="2">2人であそぶ</button>
+                <button class="btn btn-main btn-playercount" data-count="3">3人であそぶ</button>
+                <button class="btn btn-main btn-playercount" data-count="4">4人であそぶ</button>
+            </div>
+
+            <p class="field-label">ルームIDで参加する</p>
+            <div class="join-row">
+                <input id="input-room-id" class="text-input" type="text" maxlength="6" placeholder="6桁のルームID">
+                <button id="btn-join-room" class="btn btn-sub">参加する</button>
+            </div>
+
+            <p id="multi-setup-error" class="error-text is-hidden"></p>
+
+            <button id="btn-multi-to-title" class="btn btn-sub-wide ad-safe-bottom">タイトルへ</button>
+        </section>
+
+        <!-- ============================
+             みんなであそぶ：ルーム待機画面
+        ============================= -->
+        <section id="screen-room-wait" class="screen">
+            <h2 class="screen-title">ルーム待機中</h2>
+
+            <p class="field-label">ルームID（このIDを友達に伝えてね）</p>
+            <div class="room-id-display" id="room-id-display">------</div>
+
+            <div class="room-players" id="room-players"></div>
+
+            <p class="waiting-text">人数がそろうと自動でスタートします…</p>
+
+            <button id="btn-room-leave" class="btn btn-sub-wide ad-safe-bottom">やめる</button>
+        </section>
+
+        <!-- ============================
+             みんなであそぶ：対戦プレイ画面
+        ============================= -->
+        <section id="screen-multi-play" class="screen">
+            <div class="flash-overlay" id="multi-flash"></div>
+
+            <div class="scoreboard" id="multi-scoreboard"></div>
+
+            <div class="word-stage">
+                <div class="word-blob" id="multi-word-blob">
+                    <span class="word-text" id="multi-word-text"></span>
+                </div>
+            </div>
+
+            <div class="difficulty-badge" id="multi-difficulty-badge">EASY</div>
+        </section>
+
+        <!-- ============================
+             みんなであそぶ：結果画面
+        ============================= -->
+        <section id="screen-multi-result" class="screen">
+            <h2 class="result-title" id="multi-result-title">けっか発表！</h2>
+            <div class="scoreboard" id="multi-result-scoreboard"></div>
+
+            <div class="menu">
+                <button id="btn-multi-result-to-title" class="btn btn-main ad-safe-bottom">タイトルへ</button>
+            </div>
+        </section>
+
+        <!-- ============================
+             ハイスコア画面
+        ============================= -->
+        <section id="screen-highscore" class="screen">
+            <h2 class="screen-title">ハイスコア</h2>
+
+            <div class="highscore-card">
+                <p class="field-label">じぶんのベストタイム</p>
+                <div class="highscore-local" id="highscore-local">記録なし</div>
+            </div>
+
+            <div class="highscore-card">
+                <p class="field-label">みんなのランキング（上位10件）</p>
+                <ol class="highscore-ranking" id="highscore-ranking">
+                    <li class="highscore-loading">読み込み中…</li>
+                </ol>
+            </div>
+
+            <button id="btn-highscore-to-title" class="btn btn-sub-wide ad-safe-bottom">タイトルへ</button>
+        </section>
 
     </main>
-    
+
     <!-- ========================================
          固定広告
     ========================================= -->
@@ -28,13 +181,13 @@
         <div style="max-width: 100%;">
 
             <!-- admax -->
-            <script src="ここに広告スクリプトを貼る"></script>
+            <script src="https://adm.shinobi.jp/s/8a495d941206bf0c34aff9559f8d2cea"></script>
             <!-- admax -->
 
         </div>
 
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

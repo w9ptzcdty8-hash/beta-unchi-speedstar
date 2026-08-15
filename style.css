@@ -3,6 +3,34 @@
    Common Styles
 ======================================== */
 
+:root {
+    /* 広告バナーの高さ（実際の広告枠の高さに合わせて調整してください） */
+    --ad-height: 60px;
+
+    /* ----------------------------------
+       うんちスピードスター 専用トークン
+       （ふざけているけど、ちゃんと考えたパレット）
+       - ベース：クリームではなく、少し黄みがかった "きなこ" ホワイト
+       - メイン：うんちを連想させすぎない、あたたかいキャラメルブラウン
+       - サブ：はしゃいだ気持ちを表すマスタードイエロー
+       - 対戦モードだけ差し色にポップなラベンダーを使用
+    ---------------------------------- */
+    --color-bg: #FBF6EC;
+    --color-bg-soft: #F3ECDC;
+    --color-brown: #8A5A2E;
+    --color-brown-dark: #6B4420;
+    --color-mustard: #F2A93B;
+    --color-mustard-dark: #D98E1F;
+    --color-lavender: #7C6FE0;
+    --color-lavender-dark: #5B4DC4;
+    --color-ink: #3A2C1D;
+    --color-good: #37B24D;
+    --color-bad: #E8483C;
+
+    --font-display: "M PLUS Rounded 1c", "Noto Sans JP", sans-serif;
+    --font-body: "Noto Sans JP", sans-serif;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -14,9 +42,10 @@ body {
 }
 
 body {
-    font-family: sans-serif;
-    background: #f5f5f5;
-    color: #222;
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-ink);
+    overscroll-behavior-y: contain;
 }
 
 /* ========================================
@@ -29,9 +58,20 @@ body {
     min-height: 100vh;
     margin: 0 auto;
     padding: 20px;
-   
-       /* 固定広告によるコンテンツ隠れ防止 */
-    padding-bottom: 100px;
+
+    /* 固定広告によるコンテンツ隠れ防止は
+       margin-bottom を持つ .ad-safe-bottom 側で対応する。
+       ここでは通常の余白のみを指定する。
+       （大きな padding-bottom を安易に付けない） */
+    padding-bottom: 16px;
+}
+
+/* ========================================
+   Ad-safe bottom spacing
+======================================== */
+
+.ad-safe-bottom {
+    margin-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 24px);
 }
 
 /* ========================================
@@ -40,6 +80,532 @@ body {
 
 button {
     cursor: pointer;
+    font-family: var(--font-body);
+}
+
+.btn {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 16px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(2px) scale(0.99);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-main {
+    background-color: var(--color-brown);
+    color: #ffffff;
+}
+
+.btn-multi-color {
+    background-color: var(--color-lavender);
+}
+
+.btn-sub {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background-color: #ffffff;
+    color: var(--color-ink);
+    border: 2px solid var(--color-bg-soft);
+    border-radius: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: none;
+}
+
+.btn-sub-wide {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background-color: transparent;
+    color: var(--color-brown-dark);
+    border: 2px solid var(--color-bg-soft);
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: none;
+    width: 100%;
+}
+
+.btn-sub:disabled,
+.btn-sub-wide:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+/* ========================================
+   MRS TOOLS / MRS GAMES リンク
+======================================== */
+
+.footer-link-container {
+    width: 100%;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.btn-footer-link {
+    display: inline-block;
+    color: #a08a6f;
+    font-size: 0.85rem;
+    font-weight: normal;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    border-radius: 0;
+    min-height: auto;
+    width: auto;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+
+.btn-footer-link:hover,
+.btn-footer-link:active {
+    color: var(--color-brown);
+}
+
+/* ========================================
+   Screens (画面切り替え)
+======================================== */
+
+.screen {
+    display: none;
+    flex-direction: column;
+    min-height: calc(100vh - 40px);
+}
+
+.screen.is-active {
+    display: flex;
+}
+
+.screen-title {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-align: center;
+    margin: 8px 0 20px;
+    color: var(--color-brown-dark);
+}
+
+/* ========================================
+   タイトル画面
+======================================== */
+
+#screen-title {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* サイン要素：うんちの渦をイメージした、非対称アシンメトリーブロブ */
+.title-blob {
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle at 35% 30%, var(--color-mustard) 0%, var(--color-brown) 70%);
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+    opacity: 0.35;
+    animation: blob-float 7s ease-in-out infinite;
+}
+
+@keyframes blob-float {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(12deg) scale(1.05); }
+}
+
+.game-title {
+    font-family: var(--font-display);
+    font-size: 2.6rem;
+    font-weight: 900;
+    line-height: 1.2;
+    color: var(--color-brown-dark);
+    margin: 0;
+    z-index: 1;
+    text-shadow: 3px 3px 0 var(--color-mustard);
+}
+
+.game-sub {
+    font-size: 0.95rem;
+    color: var(--color-brown);
+    margin: 12px 0 0;
+    z-index: 1;
+}
+
+/* ========================================
+   単語ステージ（うんちスワール = シグネチャー要素）
+======================================== */
+
+.word-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    min-height: 40vh;
+}
+
+.word-blob {
+    width: min(72vw, 280px);
+    height: min(72vw, 280px);
+    background: linear-gradient(155deg, var(--color-mustard) 0%, var(--color-brown) 100%);
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 10px 0 rgba(0, 0, 0, 0.1);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: transform 0.08s;
+}
+
+.word-blob:active {
+    transform: scale(0.97);
+}
+
+.word-text {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 8vw, 2.4rem);
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+    padding: 0 16px;
+    text-align: center;
+    word-break: keep-all;
+}
+
+.word-hint {
+    font-size: 0.85rem;
+    color: var(--color-brown);
+    opacity: 0.8;
+}
+
+/* 正解／お手つきのフラッシュ演出 */
+.flash-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 900;
+    transition: opacity 0.08s;
+}
+
+.flash-overlay.flash-good {
+    background-color: var(--color-good);
+    opacity: 0.35;
+}
+
+.flash-overlay.flash-bad {
+    background-color: var(--color-bad);
+    opacity: 0.35;
+}
+
+/* ========================================
+   ひとりであそぶ：HUD
+======================================== */
+
+.game-hud {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.round-times {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.round-chip {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background-color: var(--color-bg-soft);
+    color: var(--color-brown-dark);
+}
+
+.round-chip.is-current {
+    background-color: var(--color-mustard);
+    color: #ffffff;
+}
+
+.round-chip.is-done {
+    background-color: var(--color-brown);
+    color: #ffffff;
+}
+
+.game-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.total-time {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--color-brown-dark);
+}
+
+/* ========================================
+   結果画面
+======================================== */
+
+.result-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-align: center;
+    color: var(--color-brown-dark);
+    margin: 12px 0;
+}
+
+.result-total {
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 900;
+    text-align: center;
+    color: var(--color-mustard-dark);
+    margin: 8px 0 16px;
+}
+
+.result-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--color-bg-soft);
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 0.9rem;
+}
+
+.result-detail .result-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.new-record {
+    text-align: center;
+    font-weight: 800;
+    color: var(--color-good);
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+/* ========================================
+   フォーム部品
+======================================== */
+
+.field-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-brown-dark);
+    margin: 16px 0 6px;
+}
+
+.text-input {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 2px solid var(--color-bg-soft);
+    font-size: 1rem;
+    font-family: var(--font-body);
+    background: #ffffff;
+    color: var(--color-ink);
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: var(--color-mustard);
+}
+
+.join-row {
+    display: flex;
+    gap: 8px;
+}
+
+.join-row .text-input {
+    flex: 1;
+}
+
+.error-text {
+    color: var(--color-bad);
+    font-size: 0.85rem;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* ========================================
+   ルーム待機画面
+======================================== */
+
+.room-id-display {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-align: center;
+    background: var(--color-bg-soft);
+    border-radius: 16px;
+    padding: 16px;
+    color: var(--color-lavender-dark);
+}
+
+.room-players {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.room-player-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 2px solid var(--color-bg-soft);
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.waiting-text {
+    text-align: center;
+    color: var(--color-brown);
+    font-size: 0.9rem;
+}
+
+/* ========================================
+   対戦モード：スコアボード／難易度バッジ
+======================================== */
+
+.scoreboard {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 2px 12px;
+}
+
+.score-pill {
+    flex: 0 0 auto;
+    background: var(--color-bg-soft);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-brown-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+
+.score-pill .score-value {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: var(--color-lavender-dark);
+}
+
+.score-pill.is-me {
+    background: var(--color-mustard);
+    color: #ffffff;
+}
+
+.score-pill.is-me .score-value {
+    color: #ffffff;
+}
+
+.difficulty-badge {
+    align-self: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: var(--color-lavender);
+    color: #ffffff;
+    margin-top: 8px;
+}
+
+/* ========================================
+   ハイスコア画面
+======================================== */
+
+.highscore-card {
+    background: var(--color-bg-soft);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
+.highscore-local {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--color-mustard-dark);
+    text-align: center;
+}
+
+.highscore-ranking {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.highscore-ranking li {
+    display: flex;
+    justify-content: space-between;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.highscore-loading {
+    color: #999;
+    justify-content: center !important;
+}
+
+.is-hidden {
+    display: none !important;
 }
 
 /* ========================================
@@ -50,6 +616,10 @@ button {
 
     #app {
         padding: 15px;
+    }
+
+    .game-title {
+        font-size: 2.2rem;
     }
 
 }
@@ -67,6 +637,8 @@ button {
     display: flex;
     justify-content: center;
     align-items: center;
+
+    min-height: var(--ad-height);
 
     background-color: #121212;
 
