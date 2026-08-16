@@ -9,6 +9,7 @@
 //   npmパッケージではなくCDNのESM URLを使用しています）
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
     getDatabase,
     ref,
@@ -44,6 +45,10 @@ let firebaseReady = false;
 
 try {
     firebaseApp = initializeApp(firebaseConfig);
+
+    const auth = getAuth();
+    signInAnonymously(auth);
+
     db = getDatabase(firebaseApp);
     firebaseReady = true;
 } catch (err) {
