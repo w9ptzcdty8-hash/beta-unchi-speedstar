@@ -88,10 +88,10 @@ const CORRECT_WORD_INDEX = ALL_WORDS.length - 1;
 
 // difficultyLevel: 1=EASY, 2=NORMAL, 3=HARD, 4=CHAOS
 const DIFFICULTY_SETTINGS = {
-    1: { name: "EASY", min: 1500, max: 2200, fakeRate: 0.20 },
-    2: { name: "NORMAL", min: 1000, max: 2200, fakeRate: 0.35 },
-    3: { name: "HARD", min: 600, max: 2200, fakeRate: 0.50 },
-    4: { name: "CHAOS", min: 300, max: 2200, fakeRate: 0.70 }
+    1: { name: "EASY", min: 1300, max: 1300, fakeRate: 0.20 },
+    2: { name: "NORMAL", min: 800, max: 1300, fakeRate: 0.35 },
+    3: { name: "HARD", min: 400, max: 1300, fakeRate: 0.50 },
+    4: { name: "CHAOS", min: 200, max: 1300, fakeRate: 0.70 }
 };
 
 // ひとりであそぶ：5回勝負の難易度進行

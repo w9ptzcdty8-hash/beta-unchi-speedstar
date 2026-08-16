@@ -197,7 +197,7 @@ button {
 .screen {
     display: none;
     flex-direction: column;
-    min-height: calc(100vh - 40px);
+    min-height: calc(100vh - 40px - var(--ad-height));
 }
 
 .screen.is-active {
@@ -272,7 +272,7 @@ button {
     justify-content: center;
     align-items: center;
     gap: 16px;
-    min-height: 40vh;
+    min-height: 30vh;
 }
 
 .word-blob {
