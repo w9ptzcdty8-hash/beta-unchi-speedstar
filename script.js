@@ -28,13 +28,13 @@ import {
 // ★★★ ここを自分のFirebaseプロジェクトの設定値に差し替えてください ★★★
 // Firebaseコンソール > プロジェクトの設定 > 全般 > マイアプリ から取得できます。
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCMyz2z02iqgxmdgI3kPZi2-l0JQ1sIy94",
+  authDomain: "unch-speedstar.firebaseapp.com",
+  projectId: "unch-speedstar",
+  storageBucket: "unch-speedstar.firebasestorage.app",
+  messagingSenderId: "158427272547",
+  appId: "1:158427272547:web:97ab36d4ef3b7681f3ef56",
+  measurementId: "G-PZ75BED8KQ"
 };
 
 let firebaseApp = null;
