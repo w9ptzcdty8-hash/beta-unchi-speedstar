@@ -9,11 +9,10 @@
 
     /* ----------------------------------
        うんちスピードスター 専用トークン
-       （ふざけているけど、ちゃんと考えたパレット）
-       - ベース：クリームではなく、少し黄みがかった "きなこ" ホワイト
-       - メイン：うんちを連想させすぎない、あたたかいキャラメルブラウン
-       - サブ：はしゃいだ気持ちを表すマスタードイエロー
-       - 対戦モードだけ差し色にポップなラベンダーを使用
+       - ベース：きなこホワイト
+       - メイン：キャラメルブラウン
+       - サブ：マスタードイエロー
+       - 対戦モード：ラベンダー
     ---------------------------------- */
     --color-bg: #FBF6EC;
     --color-bg-soft: #F3ECDC;
@@ -39,6 +38,8 @@ html,
 body {
     margin: 0;
     padding: 0;
+    height: 100%;
+    overflow: hidden; /* 画面全体の不要なスクロールを防止 */
 }
 
 body {
@@ -49,29 +50,21 @@ body {
 }
 
 /* ========================================
-   App
+   App（広告領域を除いた画面いっぱいに表示）
 ======================================== */
 
 #app {
     width: 100%;
     max-width: 600px;
-    min-height: 100vh;
+    /* 画面高さ(100dvh)から広告高さとセーフエリア分を引いてぴったり納める */
+    height: calc(100vh - var(--ad-height) - env(safe-area-inset-bottom));
+    height: calc(100dvh - var(--ad-height) - env(safe-area-inset-bottom));
     margin: 0 auto;
-    padding: 20px;
-
-    /* 固定広告によるコンテンツ隠れ防止は
-       margin-bottom を持つ .ad-safe-bottom 側で対応する。
-       ここでは通常の余白のみを指定する。
-       （大きな padding-bottom を安易に付けない） */
-    padding-bottom: 16px;
-}
-
-/* ========================================
-   Ad-safe bottom spacing
-======================================== */
-
-.ad-safe-bottom {
-    margin-bottom: calc(var(--ad-height) + env(safe-area-inset-bottom) + 24px);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
 }
 
 /* ========================================
@@ -156,7 +149,7 @@ button {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin: 20px 0;
+    margin: 16px 0;
 }
 
 /* ========================================
@@ -165,8 +158,8 @@ button {
 
 .footer-link-container {
     width: 100%;
-    margin-top: 24px;
-    margin-bottom: 12px;
+    margin-top: auto;
+    padding-top: 8px;
     text-align: center;
 }
 
@@ -197,7 +190,8 @@ button {
 .screen {
     display: none;
     flex-direction: column;
-    min-height: calc(100vh - 40px - var(--ad-height));
+    height: 100%;
+    overflow-y: auto; /* 万が一コンテンツが溢れた場合のみ内部でスクロール */
 }
 
 .screen.is-active {
@@ -209,7 +203,7 @@ button {
     font-size: 1.3rem;
     font-weight: 800;
     text-align: center;
-    margin: 8px 0 20px;
+    margin: 8px 0 16px;
     color: var(--color-brown-dark);
 }
 
@@ -225,7 +219,6 @@ button {
     overflow: hidden;
 }
 
-/* サイン要素：うんちの渦をイメージした、非対称アシンメトリーブロブ */
 .title-blob {
     position: absolute;
     top: -60px;
@@ -271,13 +264,13 @@ button {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 16px;
-    min-height: 30vh;
+    gap: 12px;
+    min-height: 0; /* Flexの縮小を許可 */
 }
 
 .word-blob {
-    width: min(72vw, 280px);
-    height: min(72vw, 280px);
+    width: min(60vw, 240px);
+    height: min(60vw, 240px);
     background: linear-gradient(155deg, var(--color-mustard) 0%, var(--color-brown) 100%);
     border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
     display: flex;
@@ -296,7 +289,7 @@ button {
 
 .word-text {
     font-family: var(--font-display);
-    font-size: clamp(1.6rem, 8vw, 2.4rem);
+    font-size: clamp(1.4rem, 7vw, 2.2rem);
     font-weight: 900;
     color: #ffffff;
     text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
@@ -343,15 +336,15 @@ button {
 
 .round-times {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
     justify-content: center;
 }
 
 .round-chip {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    padding: 6px 10px;
+    padding: 4px 8px;
     border-radius: 999px;
     background-color: var(--color-bg-soft);
     color: var(--color-brown-dark);
@@ -371,13 +364,13 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 .total-time {
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 800;
     color: var(--color-brown-dark);
 }
@@ -392,16 +385,16 @@ button {
     font-weight: 800;
     text-align: center;
     color: var(--color-brown-dark);
-    margin: 12px 0;
+    margin: 8px 0;
 }
 
 .result-total {
     font-family: var(--font-display);
-    font-size: 2.4rem;
+    font-size: 2.2rem;
     font-weight: 900;
     text-align: center;
     color: var(--color-mustard-dark);
-    margin: 8px 0 16px;
+    margin: 4px 0 12px;
 }
 
 .result-detail {
@@ -410,8 +403,8 @@ button {
     gap: 6px;
     background: var(--color-bg-soft);
     border-radius: 14px;
-    padding: 14px;
-    font-size: 0.9rem;
+    padding: 12px;
+    font-size: 0.85rem;
 }
 
 .result-detail .result-row {
@@ -423,7 +416,7 @@ button {
     text-align: center;
     font-weight: 800;
     color: var(--color-good);
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 4px;
 }
 
@@ -435,12 +428,12 @@ button {
     font-size: 0.85rem;
     font-weight: 700;
     color: var(--color-brown-dark);
-    margin: 16px 0 6px;
+    margin: 12px 0 6px;
 }
 
 .text-input {
     width: 100%;
-    min-height: 46px;
+    min-height: 44px;
     padding: 0 14px;
     border-radius: 12px;
     border: 2px solid var(--color-bg-soft);
@@ -482,7 +475,7 @@ button {
 .error-text {
     color: var(--color-bad);
     font-size: 0.85rem;
-    margin-top: 10px;
+    margin-top: 8px;
     text-align: center;
 }
 
@@ -492,13 +485,13 @@ button {
 
 .room-id-display {
     font-family: var(--font-display);
-    font-size: 2.2rem;
+    font-size: 2rem;
     font-weight: 900;
     letter-spacing: 0.15em;
     text-align: center;
     background: var(--color-bg-soft);
     border-radius: 16px;
-    padding: 16px;
+    padding: 12px;
     color: var(--color-lavender-dark);
 }
 
@@ -506,13 +499,13 @@ button {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin: 20px 0;
+    margin: 16px 0;
 }
 
 .room-player-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 14px;
+    padding: 8px 12px;
     background: #ffffff;
     border: 2px solid var(--color-bg-soft);
     border-radius: 12px;
@@ -533,26 +526,26 @@ button {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding: 4px 2px 12px;
+    padding: 4px 2px 8px;
 }
 
 .score-pill {
     flex: 0 0 auto;
     background: var(--color-bg-soft);
     border-radius: 999px;
-    padding: 8px 14px;
-    font-size: 0.8rem;
+    padding: 6px 12px;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--color-brown-dark);
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 70px;
+    min-width: 65px;
 }
 
 .score-pill .score-value {
     font-family: var(--font-display);
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--color-lavender-dark);
 }
 
@@ -567,14 +560,14 @@ button {
 
 .difficulty-badge {
     align-self: center;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.1em;
-    padding: 6px 16px;
+    padding: 4px 12px;
     border-radius: 999px;
     background: var(--color-lavender);
     color: #ffffff;
-    margin-top: 8px;
+    margin-top: 6px;
 }
 
 /* ========================================
@@ -584,13 +577,13 @@ button {
 .highscore-card {
     background: var(--color-bg-soft);
     border-radius: 16px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
 }
 
 .highscore-local {
     font-family: var(--font-display);
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 900;
     color: var(--color-mustard-dark);
     text-align: center;
@@ -628,15 +621,13 @@ button {
 ======================================== */
 
 @media (max-width: 600px) {
-
     #app {
-        padding: 15px;
+        padding: 12px;
     }
 
     .game-title {
-        font-size: 2.2rem;
+        font-size: 2rem;
     }
-
 }
 
 /* ========================================
@@ -664,3 +655,4 @@ button {
 
     border-top: 1px solid #333;
 }
+
