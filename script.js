@@ -67,7 +67,6 @@ const FAKE_WORDS = [
     "るんち",
     "うんつ",
     "うんぢ",
-    "うんち",
     "うんと",
     "うんば",
     "うんま",
@@ -285,23 +284,26 @@ function showSingleWord(level) {
     const { word, isCorrect } = pickWord(level);
     singleEls.wordText.textContent = word;
     singleState.wordIsActive = true;
+    singleState.waitingForCorrectTap = isCorrect;
+    if (isCorrect) {
+        singleState.wordStartedAt = performance.now();
+    }
     playSound("word");
 
-    if (isCorrect) {
-        singleState.waitingForCorrectTap = true;
-        singleState.wordStartedAt = performance.now();
-        // 正解の単語はプレイヤーがタップするまで表示し続ける（自動では消えない）
-    } else {
-        singleState.waitingForCorrectTap = false;
-        scheduleSingleWord();
-    }
+    // タップされなくても一定時間で次の単語へ進む（「うんち」も例外にしない）
+    scheduleSingleWord();
 }
 
 function handleSingleTap() {
     if (!singleState || singleState.finished || !singleState.wordIsActive) return;
 
     if (singleState.waitingForCorrectTap) {
-        // 正解タップ
+        // 正解タップ：保留中の「次の単語へ」タイマーをキャンセルする
+        if (singleState.wordTimeoutId) {
+            window.clearTimeout(singleState.wordTimeoutId);
+            singleState.wordTimeoutId = null;
+        }
+
         const reaction = performance.now() - singleState.wordStartedAt;
         const missPenalty = singleState.roundMissCounts[singleState.roundIndex] * MISS_PENALTY_MS;
         singleState.roundTimesMs[singleState.roundIndex] = reaction + missPenalty;
@@ -814,9 +816,43 @@ function handleRoundUpdate(round) {
     multiPlayEls.wordText.textContent = "";
 
     window.setTimeout(() => {
+        if (round.roundId !== currentRoundId) return; // 既に次のラウンドに進んでいる
         multiPlayEls.wordText.textContent = word;
         playSound("word");
+
+        // 誰もタップしないまま一定時間が経過したら、次のラウンドへ自動的に進める
+        window.setTimeout(() => {
+            handleRoundTimeout(round.roundId);
+        }, Math.max(300, round.nextInterval || 0));
     }, Math.max(0, round.nextInterval || 0));
+}
+
+/**
+ * 一定時間タップが無かった場合の処理。
+ * このラウンドがまだ勝者未確定（winnerIdがnull）なら、トランザクションで
+ * 「タイムアウト処理の担当」を1クライアントだけに確保し、次のラウンドを開始する。
+ * （複数端末が同時にタイムアウトを検知しても、ラウンドが二重に進まないようにするため）
+ */
+async function handleRoundTimeout(roundId) {
+    if (roundId !== currentRoundId || !multi.roomId) return;
+
+    try {
+        const claim = await runTransaction(
+            ref(db, `rooms/${multi.roomId}/round/winnerId`),
+            (current) => {
+                if (current) return; // 既に正解者確定 or 他端末がタイムアウト処理済み（abort）
+                return "__timeout__";
+            }
+        );
+
+        if (claim.committed) {
+            window.setTimeout(() => {
+                startRound();
+            }, ROUND_TRANSITION_DELAY_MS);
+        }
+    } catch (err) {
+        console.warn("ラウンドのタイムアウト処理に失敗しました", err);
+    }
 }
 
 function renderMultiScoreboard(targetEl, players) {
