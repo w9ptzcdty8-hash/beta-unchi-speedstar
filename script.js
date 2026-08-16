@@ -28,7 +28,7 @@ import {
 // ★★★ ここを自分のFirebaseプロジェクトの設定値に差し替えてください ★★★
 // Firebaseコンソール > プロジェクトの設定 > 全般 > マイアプリ から取得できます。
 const firebaseConfig = {
-  apiKey: "AIzaSyCMyz2z02iqgxmdgI3kPZi2-l0JQ1sIy94",
+  apiKey: "AIzaSyCHcw78cImehf65vogNXPyxm2C4LpJlciU",
   authDomain: "unch-speedstar.firebaseapp.com",
   databaseURL: "https://unch-speedstar-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "unch-speedstar",
