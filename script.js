@@ -524,6 +524,7 @@ let multi = {
     roomId: null,
     playerId: null,
     playerName: null,
+    maxPlayers: null,
     listeners: [] // { path, callback } を記録し、退出時にoffする
 };
 
@@ -590,6 +591,7 @@ async function createRoom(maxPlayers) {
     multi.roomId = roomId;
     multi.playerId = playerId;
     multi.playerName = playerName;
+    multi.maxPlayers = maxPlayers;
 
     try {
         await set(ref(db, `rooms/${roomId}`), {
@@ -640,6 +642,7 @@ async function joinRoom(roomId) {
         multi.roomId = roomId;
         multi.playerId = playerId;
         multi.playerName = playerName;
+        multi.maxPlayers = room.maxPlayers;
 
         await set(ref(db, `rooms/${roomId}/players/${playerId}`), {
             name: playerName,
@@ -685,6 +688,36 @@ function enterRoomWaitScreen() {
 
     // 対戦画面・結果画面のスコアボード用の監視もあわせて設定しておく
     attachScoreboardWatcher();
+
+    // 人数がそろったら自動でゲームを開始する（Cloud Functionsを使わないフロント完結版）
+    watchAutoStart();
+}
+
+/**
+ * players を監視し、maxPlayersに達したら state を "waiting" → "playing" に変更して
+ * 最初のラウンドを開始する。
+ * 複数クライアントが同時に検知しても、トランザクションにより実行されるのは1回だけになる。
+ */
+function watchAutoStart() {
+    multiWatch(`rooms/${multi.roomId}/players`, async (snapshot) => {
+        const players = snapshot.val() || {};
+        const count = Object.keys(players).length;
+
+        if (!multi.maxPlayers || count < multi.maxPlayers) return;
+
+        try {
+            const result = await runTransaction(ref(db, `rooms/${multi.roomId}/state`), (current) => {
+                if (current === "waiting") return "playing";
+                return; // "waiting"以外なら何もしない（abort）
+            });
+
+            if (result.committed) {
+                await startRound();
+            }
+        } catch (err) {
+            console.warn("自動開始処理に失敗しました", err);
+        }
+    });
 }
 
 function renderRoomWaitPlayers(players) {
@@ -713,6 +746,7 @@ async function leaveRoom() {
     multiUnwatchAll();
     multi.roomId = null;
     multi.playerId = null;
+    multi.maxPlayers = null;
     showScreen("title");
 }
 
@@ -738,6 +772,32 @@ function attachScoreboardWatcher() {
                 winnerId === multi.playerId ? "🎉 あなたの勝ち！" : `🎉 ${winnerData.name} の勝ち！`;
         }
     });
+}
+
+/**
+ * 新しいラウンドを開始する（Cloud Functionsを使わず、フロント側で完結させる版）。
+ * difficultyLevelをランダムに決め、その難易度のフェイント率にもとづいて
+ * ALL_WORDS の中から単語を1つ選び、表示間隔とあわせて rooms/{roomId}/round に書き込む。
+ */
+async function startRound() {
+    if (!multi.roomId) return;
+
+    const difficultyLevel = Math.floor(Math.random() * 4) + 1; // 1〜4のランダム
+    const { word } = pickWord(difficultyLevel); // 難易度のfakeRateに応じてALL_WORDSから選ぶ
+    const currentWordIndex = ALL_WORDS.indexOf(word);
+    const nextInterval = pickInterval(difficultyLevel);
+
+    try {
+        await set(ref(db, `rooms/${multi.roomId}/round`), {
+            roundId: Date.now(),
+            difficultyLevel,
+            currentWordIndex,
+            nextInterval,
+            winnerId: null // このラウンドの正解タップ最速者（未確定はnull）
+        });
+    } catch (err) {
+        console.warn("ラウンド開始に失敗しました", err);
+    }
 }
 
 function handleRoundUpdate(round) {
@@ -775,22 +835,65 @@ multiPlayEls.wordBlob.addEventListener("click", async () => {
     if (!multi.roomId || hasTappedThisRound || !currentRoundId) return;
     hasTappedThisRound = true;
 
-    try {
-        await set(ref(db, `rooms/${multi.roomId}/rounds/${currentRoundId}/taps/${multi.playerId}`), {
-            tapTime: Date.now(),
-            tapWordIndex: ALL_WORDS.indexOf(multiPlayEls.wordText.textContent)
-        });
+    const tapWordIndex = ALL_WORDS.indexOf(multiPlayEls.wordText.textContent);
 
-        if (currentRoundIsCorrectWord) {
-            playSound("correct");
-            flash(multiPlayEls.flash, "good");
+    // タップ履歴として記録しておく（結果確認・デバッグ用。判定自体には使わない）
+    set(ref(db, `rooms/${multi.roomId}/rounds/${currentRoundId}/taps/${multi.playerId}`), {
+        tapTime: Date.now(),
+        tapWordIndex
+    }).catch(() => {});
+
+    if (!currentRoundIsCorrectWord) {
+        // 誤タップ：−1点。ラウンドはそのまま続行する（最初に正解した人が出るまで進む）
+        playSound("miss");
+        flash(multiPlayEls.flash, "bad");
+        try {
+            await runTransaction(ref(db, `rooms/${multi.roomId}/players/${multi.playerId}/score`), (current) => (
+                (current || 0) - 1
+            ));
+        } catch (err) {
+            console.warn("スコア更新に失敗しました", err);
+        }
+        return;
+    }
+
+    // 正解タップ：このラウンドで最初に「winnerId」を確保できたプレイヤーだけが+1点になる。
+    // Firebaseのトランザクションは同時に届いても1件ずつ順番に処理されるため、
+    // Cloud Functionsが無くても「早いもの勝ち」の判定として機能する。
+    try {
+        const claim = await runTransaction(
+            ref(db, `rooms/${multi.roomId}/round/winnerId`),
+            (current) => {
+                if (current) return; // 既に他のプレイヤーが確定済み（abort）
+                return multi.playerId;
+            }
+        );
+
+        if (!claim.committed) {
+            // 自分より先に他のプレイヤーが正解と判定された（ポイントは入らない）
+            return;
+        }
+
+        playSound("correct");
+        flash(multiPlayEls.flash, "good");
+
+        const scoreResult = await runTransaction(
+            ref(db, `rooms/${multi.roomId}/players/${multi.playerId}/score`),
+            (current) => (current || 0) + 1
+        );
+        const newScore = scoreResult.snapshot.val();
+
+        if (newScore >= WIN_SCORE) {
+            await set(ref(db, `rooms/${multi.roomId}/state`), "finished");
+            await set(ref(db, `rooms/${multi.roomId}/winner`), multi.playerId);
         } else {
-            playSound("miss");
-            flash(multiPlayEls.flash, "bad");
+            // 次のラウンドを少し間を置いてから開始する（勝者になったクライアントが担当）
+            window.setTimeout(() => {
+                startRound();
+            }, ROUND_TRANSITION_DELAY_MS);
         }
     } catch (err) {
-        console.warn("タップ送信に失敗しました", err);
-        hasTappedThisRound = false;
+        console.warn("正解判定に失敗しました", err);
     }
 });
 
@@ -810,6 +913,7 @@ multiResultEls.toTitleBtn.addEventListener("click", async () => {
     }
     multi.roomId = null;
     multi.playerId = null;
+    multi.maxPlayers = null;
     currentRoundId = null;
     showScreen("title");
 });
