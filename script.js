@@ -30,6 +30,7 @@ import {
 const firebaseConfig = {
   apiKey: "AIzaSyCMyz2z02iqgxmdgI3kPZi2-l0JQ1sIy94",
   authDomain: "unch-speedstar.firebaseapp.com",
+  databaseURL: "https://unch-speedstar-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "unch-speedstar",
   storageBucket: "unch-speedstar.firebasestorage.app",
   messagingSenderId: "158427272547",
