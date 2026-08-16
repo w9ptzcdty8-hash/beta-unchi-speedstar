@@ -457,11 +457,26 @@ button {
 
 .join-row {
     display: flex;
+    flex-direction: row;
     gap: 8px;
+    align-items: stretch;
 }
 
 .join-row .text-input {
     flex: 1;
+    min-width: 0;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+}
+
+.join-row .btn-sub {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 0 12px;
+    white-space: nowrap;
 }
 
 .error-text {
