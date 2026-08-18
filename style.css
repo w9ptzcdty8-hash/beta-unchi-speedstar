@@ -56,7 +56,7 @@ body {
     height: 100%;
     height: 100dvh;
     margin: 0 auto;
-    padding: 12px 16px calc(var(--ad-height) + 12px);
+    padding: 12px 16px calc(var(--ad-height) + env(safe-area-inset-bottom) + 12px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -330,9 +330,10 @@ button {
 .flash-overlay.flash-good { background-color: var(--color-good); opacity: 0.35; }
 .flash-overlay.flash-bad { background-color: var(--color-bad); opacity: 0.35; }
 
+/* 正解／お手つきエフェクトは画面上部に固定表示し、単語（.word-blob）と重ならないようにする */
 .feedback-badge {
-    position: absolute;
-    top: 45%;
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 64px);
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
     z-index: 950;
@@ -342,10 +343,10 @@ button {
     white-space: nowrap;
 }
 
-/* 3秒間維持する正解バッジ（サイズを大幅に大きく） */
+/* 3秒間維持する正解バッジ（上部に収まるサイズへ縮小） */
 .feedback-badge.badge-good {
     color: #37B24D;
-    font-size: clamp(8rem, 30vw, 12rem);
+    font-size: clamp(2.6rem, 11vw, 4.2rem);
     animation: popGood 3s ease-out forwards;
 }
 @keyframes popGood {
@@ -359,7 +360,7 @@ button {
 /* 3秒間維持するお手つきバッジ */
 .feedback-badge.badge-bad {
     color: #E8483C;
-    font-size: clamp(2rem, 8vw, 3rem);
+    font-size: clamp(1.4rem, 5.5vw, 2rem);
     background: rgba(255, 255, 255, 0.95);
     padding: 8px 18px;
     border-radius: 16px;
@@ -573,7 +574,7 @@ button {
 .highscore-loading { color: #999; justify-content: center !important; }
 .is-hidden { display: none !important; }
 
-/* 広告バナー（隙間をなくして画面下に吸着） */
+/* 広告バナー（隙間をなくして画面下・セーフエリア下端まで密着させる） */
 .ad-banner {
     position: fixed;
     bottom: 0;
@@ -583,8 +584,7 @@ button {
     justify-content: center;
     align-items: center;
     height: var(--ad-height);
+    padding-bottom: env(safe-area-inset-bottom);
     background-color: #121212;
     z-index: 1000;
 }
-
-
