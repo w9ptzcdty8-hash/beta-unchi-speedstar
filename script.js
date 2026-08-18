@@ -171,7 +171,7 @@ function triggerFeedback(overlayEl, feedbackBadgeEl, stageEl, type) {
         feedbackBadgeEl.classList.remove("badge-good", "badge-bad");
         void feedbackBadgeEl.offsetWidth;
         if (type === "good") {
-            feedbackBadgeEl.textContent = "〇";
+            feedbackBadgeEl.textContent = "せいかい";
             feedbackBadgeEl.classList.add("badge-good");
         } else {
             feedbackBadgeEl.textContent = "✕ お手つき！";
@@ -363,10 +363,10 @@ function handleSingleTap() {
 }
 
 function advanceSingleRound() {
+    singleState.roundIndex += 1;
+
     renderSingleRoundChips();
     updateSingleTotalDisplay();
-
-    singleState.roundIndex += 1;
 
     if (singleState.roundIndex >= 5) {
         singleState.finished = true;
