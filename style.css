@@ -295,45 +295,20 @@ button {
 }
 
 /* アニメーション各種 */
-.anim-pop {
-    animation: animPop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes animPop {
-    0% { transform: scale(0.3); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
+.anim-pop { animation: animPop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+@keyframes animPop { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-.anim-slide-left {
-    animation: animSlideLeft 0.15s ease-out forwards;
-}
-@keyframes animSlideLeft {
-    0% { transform: translateX(-50px) scale(0.8); opacity: 0; }
-    100% { transform: translateX(0) scale(1); opacity: 1; }
-}
+.anim-slide-left { animation: animSlideLeft 0.15s ease-out forwards; }
+@keyframes animSlideLeft { 0% { transform: translateX(-50px) scale(0.8); opacity: 0; } 100% { transform: translateX(0) scale(1); opacity: 1; } }
 
-.anim-slide-right {
-    animation: animSlideRight 0.15s ease-out forwards;
-}
-@keyframes animSlideRight {
-    0% { transform: translateX(50px) scale(0.8); opacity: 0; }
-    100% { transform: translateX(0) scale(1); opacity: 1; }
-}
+.anim-slide-right { animation: animSlideRight 0.15s ease-out forwards; }
+@keyframes animSlideRight { 0% { transform: translateX(50px) scale(0.8); opacity: 0; } 100% { transform: translateX(0) scale(1); opacity: 1; } }
 
-.anim-fade-blur {
-    animation: animFadeBlur 0.18s ease-out forwards;
-}
-@keyframes animFadeBlur {
-    0% { filter: blur(10px); opacity: 0; transform: scale(1.1); }
-    100% { filter: blur(0); opacity: 1; transform: scale(1); }
-}
+.anim-fade-blur { animation: animFadeBlur 0.18s ease-out forwards; }
+@keyframes animFadeBlur { 0% { filter: blur(10px); opacity: 0; transform: scale(1.1); } 100% { filter: blur(0); opacity: 1; transform: scale(1); } }
 
-.anim-rotate-tilt {
-    animation: animRotateTilt 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes animRotateTilt {
-    0% { transform: rotate(-15deg) scale(0.6); opacity: 0; }
-    100% { transform: rotate(0deg) scale(1); opacity: 1; }
-}
+.anim-rotate-tilt { animation: animRotateTilt 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+@keyframes animRotateTilt { 0% { transform: rotate(-15deg) scale(0.6); opacity: 0; } 100% { transform: rotate(0deg) scale(1); opacity: 1; } }
 
 .word-hint {
     font-size: 0.8rem;
@@ -352,19 +327,13 @@ button {
     transition: opacity 0.08s;
 }
 
-.flash-overlay.flash-good {
-    background-color: var(--color-good);
-    opacity: 0.35;
-}
+.flash-overlay.flash-good { background-color: var(--color-good); opacity: 0.35; }
+.flash-overlay.flash-bad { background-color: var(--color-bad); opacity: 0.35; }
 
-.flash-overlay.flash-bad {
-    background-color: var(--color-bad);
-    opacity: 0.35;
-}
-
+/* 正解／お手つきエフェクトは画面上部に固定表示し、単語（.word-blob）と重ならないようにする */
 .feedback-badge {
-    position: absolute;
-    top: 45%;
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 64px);
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
     z-index: 950;
@@ -374,40 +343,42 @@ button {
     white-space: nowrap;
 }
 
+/* 3秒間維持する正解バッジ（上部に収まるサイズへ縮小） */
 .feedback-badge.badge-good {
     color: #37B24D;
-    font-size: clamp(4rem, 18vw, 6.5rem);
-    animation: popGood 0.35s ease-out forwards;
+    font-size: clamp(2.6rem, 11vw, 4.2rem);
+    animation: popGood 3s ease-out forwards;
 }
-
 @keyframes popGood {
     0% { transform: translate(-50%, -50%) scale(0.2) rotate(-15deg); opacity: 0; }
-    50% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; }
+    4% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); opacity: 1; }
+    8% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+    85% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.8) rotate(0deg); opacity: 0; }
 }
 
+/* 3秒間維持するお手つきバッジ */
 .feedback-badge.badge-bad {
     color: #E8483C;
-    font-size: clamp(2rem, 8vw, 3rem);
+    font-size: clamp(1.4rem, 5.5vw, 2rem);
     background: rgba(255, 255, 255, 0.95);
     padding: 8px 18px;
     border-radius: 16px;
     box-shadow: 0 6px 18px rgba(232, 72, 60, 0.3);
     border: 3px solid #E8483C;
-    animation: popBad 0.4s ease-out forwards;
+    animation: popBad 3s ease-out forwards;
 }
-
 @keyframes popBad {
     0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-    20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-    80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    3% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+    8% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    85% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
 }
 
 .shake-stage {
     animation: stageShake 0.28s ease-in-out;
 }
-
 @keyframes stageShake {
     0%, 100% { transform: translateX(0); }
     20% { transform: translateX(-10px) rotate(-1deg); }
@@ -439,15 +410,8 @@ button {
     color: var(--color-brown-dark);
 }
 
-.round-chip.is-current {
-    background-color: var(--color-mustard);
-    color: #ffffff;
-}
-
-.round-chip.is-done {
-    background-color: var(--color-brown);
-    color: #ffffff;
-}
+.round-chip.is-current { background-color: var(--color-mustard); color: #ffffff; }
+.round-chip.is-done { background-color: var(--color-brown); color: #ffffff; }
 
 .game-footer {
     width: 100%;
@@ -494,32 +458,12 @@ button {
     font-size: 0.82rem;
 }
 
-.result-detail .result-row {
-    display: flex;
-    justify-content: space-between;
-}
-
-.new-record {
-    text-align: center;
-    font-weight: 800;
-    color: var(--color-good);
-    font-size: 1rem;
-}
+.result-detail .result-row { display: flex; justify-content: space-between; }
+.new-record { text-align: center; font-weight: 800; color: var(--color-good); font-size: 1rem; }
 
 /* フォーム部品 */
-.setup-form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.field-label {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--color-brown-dark);
-    margin: 8px 0 2px;
-}
+.setup-form { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 0.8rem; font-weight: 700; color: var(--color-brown-dark); margin: 8px 0 2px; }
 
 .text-input {
     width: 100%;
@@ -534,15 +478,9 @@ button {
 }
 
 /* ルームID入力欄を幅広く、参加ボタンをコンパクトに */
-.join-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    width: 100%;
-}
-
+.join-row { display: flex; gap: 8px; align-items: center; width: 100%; }
 .join-row .text-input {
-    flex: 1 1 auto; /* 入力欄を幅広く確保 */
+    flex: 1 1 auto;
     min-width: 0;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -550,19 +488,8 @@ button {
     font-family: var(--font-display);
     font-weight: 700;
 }
-
-.join-row .btn-join-action {
-    flex: 0 0 72px; /* 参加ボタンの幅を必要最小限に固定 */
-    padding: 0 8px;
-    white-space: nowrap;
-}
-
-.error-text {
-    color: var(--color-bad);
-    font-size: 0.8rem;
-    margin: 4px 0 0;
-    text-align: center;
-}
+.join-row .btn-join-action { flex: 0 0 72px; padding: 0 8px; white-space: nowrap; }
+.error-text { color: var(--color-bad); font-size: 0.8rem; margin: 4px 0 0; text-align: center; }
 
 /* ルーム待機画面 */
 .room-id-display {
@@ -578,14 +505,7 @@ button {
     width: 100%;
 }
 
-.room-players {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 10px 0;
-}
-
+.room-players { width: 100%; display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
 .room-player-row {
     display: flex;
     justify-content: space-between;
@@ -596,23 +516,10 @@ button {
     font-size: 0.88rem;
     font-weight: 700;
 }
-
-.waiting-text {
-    text-align: center;
-    color: var(--color-brown);
-    font-size: 0.82rem;
-    margin: 0;
-}
+.waiting-text { text-align: center; color: var(--color-brown); font-size: 0.82rem; margin: 0; }
 
 /* スコアボード・難易度 */
-.scoreboard {
-    width: 100%;
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-}
-
+.scoreboard { width: 100%; display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
 .score-pill {
     flex: 1;
     background: var(--color-bg-soft);
@@ -625,21 +532,9 @@ button {
     flex-direction: column;
     align-items: center;
 }
-
-.score-pill .score-value {
-    font-family: var(--font-display);
-    font-size: 0.98rem;
-    color: var(--color-lavender-dark);
-}
-
-.score-pill.is-me {
-    background: var(--color-mustard);
-    color: #ffffff;
-}
-
-.score-pill.is-me .score-value {
-    color: #ffffff;
-}
+.score-pill .score-value { font-family: var(--font-display); font-size: 0.98rem; color: var(--color-lavender-dark); }
+.score-pill.is-me { background: var(--color-mustard); color: #ffffff; }
+.score-pill.is-me .score-value { color: #ffffff; }
 
 .difficulty-badge {
     font-size: 0.75rem;
@@ -659,12 +554,7 @@ button {
     padding: 10px 12px;
     margin-bottom: 8px;
 }
-
-.scrollable-card {
-    max-height: 45vh;
-    overflow-y: auto;
-}
-
+.scrollable-card { max-height: 45vh; overflow-y: auto; }
 .highscore-local {
     font-family: var(--font-display);
     font-size: 1.4rem;
@@ -672,16 +562,7 @@ button {
     color: var(--color-mustard-dark);
     text-align: center;
 }
-
-.highscore-ranking {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
+.highscore-ranking { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .highscore-ranking li {
     display: flex;
     justify-content: space-between;
@@ -690,17 +571,10 @@ button {
     padding: 6px 10px;
     font-size: 0.8rem;
 }
+.highscore-loading { color: #999; justify-content: center !important; }
+.is-hidden { display: none !important; }
 
-.highscore-loading {
-    color: #999;
-    justify-content: center !important;
-}
-
-.is-hidden {
-    display: none !important;
-}
-
-/* 広告バナー */
+/* 広告バナー（隙間をなくして画面下・セーフエリア下端まで密着させる） */
 .ad-banner {
     position: fixed;
     bottom: 0;
@@ -709,10 +583,8 @@ button {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: var(--ad-height);
+    height: var(--ad-height);
+    padding-bottom: env(safe-area-inset-bottom);
     background-color: #121212;
     z-index: 1000;
-    padding-bottom: env(safe-area-inset-bottom);
-    border-top: 1px solid #333;
 }
-
