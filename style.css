@@ -343,7 +343,7 @@ button {
     white-space: nowrap;
 }
 
-/* 3秒間維持する正解バッジ（お手つきと同じ位置・同じ見た目のピル型、色だけ緑） */
+/* 2秒間維持する正解バッジ */
 .feedback-badge.badge-good {
     color: #37B24D;
     font-size: clamp(1.4rem, 5.5vw, 2rem);
@@ -352,17 +352,17 @@ button {
     border-radius: 16px;
     box-shadow: 0 6px 18px rgba(55, 178, 77, 0.3);
     border: 3px solid #37B24D;
-    animation: popGood 3s ease-out forwards;
+    animation: popGood 2s ease-out forwards;
 }
 @keyframes popGood {
     0% { transform: translate(-50%, -50%) scale(0.2) rotate(-15deg); opacity: 0; }
-    4% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); opacity: 1; }
-    8% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-    85% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+    6% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); opacity: 1; }
+    12% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+    80% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(0.8) rotate(0deg); opacity: 0; }
 }
 
-/* 3秒間維持するお手つきバッジ */
+/* 2秒間維持するお手つきバッジ */
 .feedback-badge.badge-bad {
     color: #E8483C;
     font-size: clamp(1.4rem, 5.5vw, 2rem);
@@ -371,13 +371,13 @@ button {
     border-radius: 16px;
     box-shadow: 0 6px 18px rgba(232, 72, 60, 0.3);
     border: 3px solid #E8483C;
-    animation: popBad 3s ease-out forwards;
+    animation: popBad 2s ease-out forwards;
 }
 @keyframes popBad {
     0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-    3% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-    8% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    85% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    6% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+    12% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
 }
 
@@ -560,13 +560,26 @@ button {
     margin-bottom: 8px;
 }
 .scrollable-card { max-height: 45vh; overflow-y: auto; }
-.highscore-local {
-    font-family: var(--font-display);
-    font-size: 1.4rem;
-    font-weight: 900;
-    color: var(--color-mustard-dark);
-    text-align: center;
+
+.highscore-local-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
+.highscore-local-list li {
+    display: flex;
+    justify-content: space-between;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-brown-dark);
+}
+
 .highscore-ranking { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .highscore-ranking li {
     display: flex;
@@ -593,3 +606,4 @@ button {
     background-color: #121212;
     z-index: 1000;
 }
+

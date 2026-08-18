@@ -72,7 +72,8 @@ const DIFFICULTY_SETTINGS = {
 
 const SINGLE_LEVEL_PROGRESSION = [1, 1, 2, 3, 4];
 const MISS_PENALTY_MS = 500;
-const LOCAL_HIGHSCORE_KEY = "unchiSpeedstar_highscore_ms";
+const LOCAL_HIGHSCORE_LIST_KEY = "unchiSpeedstar_highscore_list_ms";
+const EFFECT_WAIT_MS = 2000; // 演出待機時間（2.0秒）
 
 const ANIMATION_CLASSES = [
     "anim-pop",
@@ -171,7 +172,7 @@ function triggerFeedback(overlayEl, feedbackBadgeEl, stageEl, type) {
         feedbackBadgeEl.classList.remove("badge-good", "badge-bad");
         void feedbackBadgeEl.offsetWidth;
         if (type === "good") {
-            feedbackBadgeEl.textContent = "せいかい";
+            feedbackBadgeEl.textContent = "〇せいかい";
             feedbackBadgeEl.classList.add("badge-good");
         } else {
             feedbackBadgeEl.textContent = "✕ お手つき！";
@@ -230,7 +231,7 @@ const singleEls = {
     resultDetail: document.getElementById("single-result-detail"),
     resultNewRecord: document.getElementById("single-result-newrecord"),
     retryBtn: document.getElementById("btn-single-retry"),
-    toTitleBtn: document.getElementById("btn-single-to-title")
+    toTitleBtn: document.querySelector(".btn-single-to-title")
 };
 
 let singleState = null;
@@ -245,7 +246,7 @@ function createSingleState() {
         waitingForCorrectTap: false,
         wordIsActive: false,
         finished: false,
-        isPaused: false // エフェクト表示3秒間は画面を停止させるフラグ
+        isPaused: false
     };
 }
 
@@ -275,6 +276,7 @@ function updateSingleTotalDisplay() {
 }
 
 function startSinglePlay() {
+    stopSinglePlay();
     singleState = createSingleState();
     resetFeedback(singleEls.feedback, singleEls.stage);
     setWordTextWithAnimation(singleEls.wordText, "");
@@ -285,7 +287,7 @@ function startSinglePlay() {
 }
 
 function scheduleSingleWord() {
-    if (!singleState || singleState.finished) return;
+    if (!singleState || singleState.finished || singleState.isPaused) return;
 
     const level = SINGLE_LEVEL_PROGRESSION[singleState.roundIndex];
     const interval = pickInterval(level);
@@ -296,7 +298,13 @@ function scheduleSingleWord() {
 }
 
 function showSingleWord(level) {
-    if (!singleState || singleState.finished) return;
+    if (!singleState || singleState.finished || singleState.isPaused) return;
+
+    // 前の単語が「うんち」で見逃されていた（タップされなかった）場合、その時間を加算
+    if (singleState.wordIsActive && singleState.waitingForCorrectTap && singleState.wordStartedAt > 0) {
+        const missedTime = performance.now() - singleState.wordStartedAt;
+        singleState.roundTimesMs[singleState.roundIndex] += missedTime;
+    }
 
     resetFeedback(singleEls.feedback, singleEls.stage);
     const { word, isCorrect } = pickWord(level);
@@ -306,6 +314,8 @@ function showSingleWord(level) {
     singleState.waitingForCorrectTap = isCorrect;
     if (isCorrect) {
         singleState.wordStartedAt = performance.now();
+    } else {
+        singleState.wordStartedAt = 0;
     }
     playSound("word");
 
@@ -315,7 +325,6 @@ function showSingleWord(level) {
 function handleSingleTap() {
     if (!singleState || singleState.finished || singleState.isPaused) return;
 
-    // ワードが出ていない時のタップもお手つきとして判定するため、状態を確認
     const isCorrectTap = singleState.wordIsActive && singleState.waitingForCorrectTap;
 
     singleState.isPaused = true;
@@ -328,23 +337,25 @@ function handleSingleTap() {
         // --- 正解 ---
         const reaction = performance.now() - singleState.wordStartedAt;
         const missPenalty = singleState.roundMissCounts[singleState.roundIndex] * MISS_PENALTY_MS;
-        singleState.roundTimesMs[singleState.roundIndex] = reaction + missPenalty;
+        singleState.roundTimesMs[singleState.roundIndex] += (reaction + missPenalty);
 
         playSound("correct");
         triggerFeedback(singleEls.flash, singleEls.feedback, singleEls.stage, "good");
 
         singleState.wordIsActive = false;
         singleState.waitingForCorrectTap = false;
+        singleState.wordStartedAt = 0;
 
-        // 3秒間エフェクトとワードを維持してから次のラウンドへ
+        // 2秒間エフェクトを表示後、次のラウンドへ
         window.setTimeout(() => {
+            if (!singleState) return;
             singleState.isPaused = false;
             resetFeedback(singleEls.feedback, singleEls.stage);
-            setWordTextWithAnimation(singleEls.wordText, ""); // ここで文字を消す
+            setWordTextWithAnimation(singleEls.wordText, "");
             advanceSingleRound();
-        }, 3000);
+        }, EFFECT_WAIT_MS);
     } else {
-        // --- お手つき（ワードが出ていない時含む） ---
+        // --- お手つき（ダミー単語または文字未表示時のタップ） ---
         singleState.roundMissCounts[singleState.roundIndex] += 1;
         playSound("miss");
         triggerFeedback(singleEls.flash, singleEls.feedback, singleEls.stage, "bad");
@@ -352,13 +363,14 @@ function handleSingleTap() {
         singleState.wordIsActive = false;
         singleState.waitingForCorrectTap = false;
 
-        // 3秒ペナルティタイムとして画面を止め、その後単語出しを再開
+        // 2秒間待機後、単語タイマーを再開
         window.setTimeout(() => {
+            if (!singleState) return;
             singleState.isPaused = false;
             resetFeedback(singleEls.feedback, singleEls.stage);
-            setWordTextWithAnimation(singleEls.wordText, ""); // ここで文字を消す
+            setWordTextWithAnimation(singleEls.wordText, "");
             scheduleSingleWord();
-        }, 3000);
+        }, EFFECT_WAIT_MS);
     }
 }
 
@@ -377,29 +389,50 @@ function advanceSingleRound() {
     scheduleSingleWord();
 }
 
-function getLocalHighscoreMs() {
-    const raw = window.localStorage.getItem(LOCAL_HIGHSCORE_KEY);
-    return raw ? parseFloat(raw) : null;
+// ----------------------------------------
+// ローカルハイスコア（ベスト5管理）
+// ----------------------------------------
+
+function getLocalHighscores() {
+    const raw = window.localStorage.getItem(LOCAL_HIGHSCORE_LIST_KEY);
+    if (!raw) {
+        // 旧バージョンとの互換性チェック
+        const oldVal = window.localStorage.getItem("unchiSpeedstar_highscore_ms");
+        if (oldVal) {
+            const parsedOld = parseFloat(oldVal);
+            if (!isNaN(parsedOld)) return [parsedOld];
+        }
+        return [];
+    }
+    try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        return [];
+    }
 }
 
-function setLocalHighscoreMs(ms) {
-    window.localStorage.setItem(LOCAL_HIGHSCORE_KEY, String(ms));
+function saveLocalHighscore(totalMs) {
+    const list = getLocalHighscores();
+    list.push(totalMs);
+    list.sort((a, b) => a - b);
+    const best5 = list.slice(0, 5);
+    window.localStorage.setItem(LOCAL_HIGHSCORE_LIST_KEY, JSON.stringify(best5));
+    return best5[0] === totalMs; // 1位更新かどうか
 }
 
 function finishSinglePlay() {
     const totalMs = singleState.roundTimesMs.reduce((a, b) => a + b, 0);
-    const previousBest = getLocalHighscoreMs();
-    const isNewRecord = previousBest === null || totalMs < previousBest;
+    const isNewTopRecord = saveLocalHighscore(totalMs);
 
     playSound("win");
 
-    if (isNewRecord) {
-        setLocalHighscoreMs(totalMs);
+    if (isNewTopRecord) {
         window.setTimeout(() => playSound("highscore"), 300);
         saveHighscoreToFirebase(totalMs).catch(() => {});
     }
 
-    singleEls.resultNewRecord.classList.toggle("is-hidden", !isNewRecord);
+    singleEls.resultNewRecord.classList.toggle("is-hidden", !isNewTopRecord);
     singleEls.resultTotal.textContent = formatSeconds(totalMs);
     singleEls.resultDetail.innerHTML = "";
 
@@ -430,7 +463,9 @@ singleEls.quitBtn.addEventListener("click", () => {
     showScreen("title");
 });
 singleEls.retryBtn.addEventListener("click", startSinglePlay);
-singleEls.toTitleBtn.addEventListener("click", () => showScreen("title"));
+if (singleEls.toTitleBtn) {
+    singleEls.toTitleBtn.addEventListener("click", () => showScreen("title"));
+}
 
 document.getElementById("btn-goto-single").addEventListener("click", startSinglePlay);
 
@@ -439,7 +474,7 @@ document.getElementById("btn-goto-single").addEventListener("click", startSingle
 // ========================================
 
 const highscoreEls = {
-    local: document.getElementById("highscore-local"),
+    localList: document.getElementById("highscore-local-list"),
     ranking: document.getElementById("highscore-ranking"),
     toTitleBtn: document.getElementById("btn-highscore-to-title")
 };
@@ -473,9 +508,20 @@ function getStoredPlayerName() {
 }
 
 function renderHighscoreScreen() {
-    const best = getLocalHighscoreMs();
-    highscoreEls.local.textContent = best !== null ? formatSeconds(best) : "記録なし";
+    // ローカルベスト5表示
+    const localBest = getLocalHighscores();
+    highscoreEls.localList.innerHTML = "";
+    if (localBest.length === 0) {
+        highscoreEls.localList.innerHTML = '<li class="highscore-loading">記録なし</li>';
+    } else {
+        localBest.forEach((ms, index) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<span>${index + 1}位</span><span>${formatSeconds(ms)}</span>`;
+            highscoreEls.localList.appendChild(li);
+        });
+    }
 
+    // オンラインランキング（上位10件）表示
     highscoreEls.ranking.innerHTML = '<li class="highscore-loading">読み込み中…</li>';
 
     if (!firebaseReady) {
@@ -900,7 +946,7 @@ multiPlayEls.wordBlob.addEventListener("click", async () => {
     }).catch(() => {});
 
     if (!isCorrectTap) {
-        // --- お手つき（ワードが出ていない時含む） ---
+        // --- お手つき（ダミー単語または文字未表示時） ---
         hasTappedThisRound = true;
         multi.isPaused = true;
         playSound("miss");
@@ -914,12 +960,12 @@ multiPlayEls.wordBlob.addEventListener("click", async () => {
             console.warn("スコア更新に失敗しました", err);
         }
 
-        // 3秒ペナルティ後、やり直しできるようにする
+        // 2秒ペナルティ後、やり直し可能に設定
         window.setTimeout(() => {
             multi.isPaused = false;
             hasTappedThisRound = false;
             resetFeedback(multiPlayEls.feedback, multiPlayEls.stage);
-        }, 3000);
+        }, EFFECT_WAIT_MS);
         return;
     }
 
@@ -952,10 +998,10 @@ multiPlayEls.wordBlob.addEventListener("click", async () => {
             await set(ref(db, `rooms/${multi.roomId}/state`), "finished");
             await set(ref(db, `rooms/${multi.roomId}/winner`), multi.playerId);
         } else {
-            // 3秒エフェクトを見せてから次のラウンドを開始
+            // 2秒エフェクトを表示後、次のラウンドを開始
             window.setTimeout(() => {
                 startRound();
-            }, 3000);
+            }, EFFECT_WAIT_MS);
         }
     } catch (err) {
         console.warn("正解判定に失敗しました", err);
@@ -993,5 +1039,4 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
-
 
