@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <title>うんちスピードスター | MRS GAMES</title>
 
@@ -55,7 +55,7 @@
                 <p class="word-hint">「うんち」だけタップ！</p>
             </div>
 
-            <div class="game-footer ad-safe-bottom">
+            <div class="game-footer">
                 <div class="total-time" id="single-total-time">合計タイム：0.00秒</div>
                 <button id="btn-single-quit" class="btn btn-sub">やめる</button>
             </div>
@@ -74,7 +74,7 @@
 
             <div class="menu">
                 <button id="btn-single-retry" class="btn btn-main">もう一度あそぶ</button>
-                <button id="btn-single-to-title" class="btn btn-sub-wide ad-safe-bottom">タイトルへ</button>
+                <button id="btn-single-to-title" class="btn btn-sub-wide">タイトルへ</button>
             </div>
         </section>
 
@@ -84,25 +84,27 @@
         <section id="screen-multi-setup" class="screen">
             <h2 class="screen-title">みんなであそぶ</h2>
 
-            <label class="field-label" for="input-player-name">プレイヤー名（未入力でランダム）</label>
-            <input id="input-player-name" class="text-input" type="text" maxlength="10" placeholder="なまえを入力">
+            <div class="setup-form">
+                <label class="field-label" for="input-player-name">プレイヤー名（未入力でランダム）</label>
+                <input id="input-player-name" class="text-input" type="text" maxlength="10" placeholder="なまえを入力">
 
-            <p class="field-label">あたらしいルームを作る</p>
-            <div class="menu">
-                <button class="btn btn-main btn-playercount" data-count="2">2人であそぶ</button>
-                <button class="btn btn-main btn-playercount" data-count="3">3人であそぶ</button>
-                <button class="btn btn-main btn-playercount" data-count="4">4人であそぶ</button>
+                <p class="field-label">あたらしいルームを作る</p>
+                <div class="menu-horizontal">
+                    <button class="btn btn-main btn-playercount" data-count="2">2人</button>
+                    <button class="btn btn-main btn-playercount" data-count="3">3人</button>
+                    <button class="btn btn-main btn-playercount" data-count="4">4人</button>
+                </div>
+
+                <p class="field-label">ルームIDで参加する</p>
+                <div class="join-row">
+                    <input id="input-room-id" class="text-input" type="text" maxlength="6" placeholder="6桁のルームID">
+                    <button id="btn-join-room" class="btn btn-sub">参加</button>
+                </div>
+
+                <p id="multi-setup-error" class="error-text is-hidden"></p>
             </div>
 
-            <p class="field-label">ルームIDで参加する</p>
-            <div class="join-row">
-                <input id="input-room-id" class="text-input" type="text" maxlength="6" placeholder="6桁のルームID">
-                <button id="btn-join-room" class="btn btn-sub">参加する</button>
-            </div>
-
-            <p id="multi-setup-error" class="error-text is-hidden"></p>
-
-            <button id="btn-multi-to-title" class="btn btn-sub-wide ad-safe-bottom">タイトルへ</button>
+            <button id="btn-multi-to-title" class="btn btn-sub-wide">タイトルへ</button>
         </section>
 
         <!-- ============================
@@ -118,7 +120,7 @@
 
             <p class="waiting-text">人数がそろうと自動でスタートします…</p>
 
-            <button id="btn-room-leave" class="btn btn-sub-wide ad-safe-bottom">やめる</button>
+            <button id="btn-room-leave" class="btn btn-sub-wide">やめる</button>
         </section>
 
         <!-- ============================
@@ -136,7 +138,7 @@
                 </div>
             </div>
 
-            <div class="difficulty-badge ad-safe-bottom" id="multi-difficulty-badge">EASY</div>
+            <div class="difficulty-badge" id="multi-difficulty-badge">EASY</div>
         </section>
 
         <!-- ============================
@@ -147,7 +149,7 @@
             <div class="scoreboard" id="multi-result-scoreboard"></div>
 
             <div class="menu">
-                <button id="btn-multi-result-to-title" class="btn btn-main ad-safe-bottom">タイトルへ</button>
+                <button id="btn-multi-result-to-title" class="btn btn-main">タイトルへ</button>
             </div>
         </section>
 
@@ -162,14 +164,14 @@
                 <div class="highscore-local" id="highscore-local">記録なし</div>
             </div>
 
-            <div class="highscore-card">
+            <div class="highscore-card scrollable-card">
                 <p class="field-label">みんなのランキング（上位10件）</p>
                 <ol class="highscore-ranking" id="highscore-ranking">
                     <li class="highscore-loading">読み込み中…</li>
                 </ol>
             </div>
 
-            <button id="btn-highscore-to-title" class="btn btn-sub-wide ad-safe-bottom">タイトルへ</button>
+            <button id="btn-highscore-to-title" class="btn btn-sub-wide">タイトルへ</button>
         </section>
 
     </main>
