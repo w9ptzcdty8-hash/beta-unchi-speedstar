@@ -74,7 +74,7 @@
 
             <div class="menu">
                 <button id="btn-single-retry" class="btn btn-main">もう一度あそぶ</button>
-                <button id="btn-single-to-title" class="btn btn-sub-wide">タイトルへ</button>
+                <button id="btn-single-to-title" class="btn btn-single-to-title btn-sub-wide">タイトルへ</button>
             </div>
         </section>
 
@@ -160,8 +160,10 @@
             <h2 class="screen-title">ハイスコア</h2>
 
             <div class="highscore-card">
-                <p class="field-label">じぶんのベストタイム</p>
-                <div class="highscore-local" id="highscore-local">記録なし</div>
+                <p class="field-label">じぶんのベスト5</p>
+                <ol class="highscore-local-list" id="highscore-local-list">
+                    <li class="highscore-loading">記録なし</li>
+                </ol>
             </div>
 
             <div class="highscore-card scrollable-card">
@@ -191,5 +193,4 @@
     <script type="module" src="script.js"></script>
 </body>
 </html>
-
 
