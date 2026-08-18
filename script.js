@@ -152,6 +152,16 @@ function formatSeconds(ms) {
     return (ms / 1000).toFixed(2) + "秒";
 }
 
+function resetFeedback(feedbackBadgeEl, stageEl) {
+    if (feedbackBadgeEl) {
+        feedbackBadgeEl.classList.remove("badge-good", "badge-bad");
+        feedbackBadgeEl.textContent = "";
+    }
+    if (stageEl) {
+        stageEl.classList.remove("shake-stage");
+    }
+}
+
 function triggerFeedback(overlayEl, feedbackBadgeEl, stageEl, type) {
     overlayEl.classList.remove("flash-good", "flash-bad");
     void overlayEl.offsetWidth;
@@ -194,14 +204,13 @@ function pickInterval(difficultyLevel) {
     return Math.floor(settings.min + Math.random() * (settings.max - settings.min));
 }
 
-// アニメーション付きで単語を表示更新
 function setWordTextWithAnimation(element, newText) {
     element.textContent = "";
     ANIMATION_CLASSES.forEach(cls => element.classList.remove(cls));
 
     if (!newText) return;
 
-    void element.offsetWidth; // Reflow
+    void element.offsetWidth;
     element.textContent = newText;
     const animClass = ANIMATION_CLASSES[Math.floor(Math.random() * ANIMATION_CLASSES.length)];
     element.classList.add(animClass);
@@ -269,6 +278,8 @@ function updateSingleTotalDisplay() {
 
 function startSinglePlay() {
     singleState = createSingleState();
+    resetFeedback(singleEls.feedback, singleEls.stage);
+    setWordTextWithAnimation(singleEls.wordText, "");
     renderSingleRoundChips();
     updateSingleTotalDisplay();
     showScreen("single");
@@ -289,6 +300,7 @@ function scheduleSingleWord() {
 function showSingleWord(level) {
     if (!singleState || singleState.finished) return;
 
+    resetFeedback(singleEls.feedback, singleEls.stage);
     const { word, isCorrect } = pickWord(level);
     setWordTextWithAnimation(singleEls.wordText, word);
 
@@ -299,7 +311,6 @@ function showSingleWord(level) {
     }
     playSound("word");
 
-    // 次の単語切り替えを予約
     scheduleSingleWord();
 }
 
@@ -755,6 +766,8 @@ let hasTappedThisRound = false;
 let currentRoundIsCorrectWord = false;
 
 function enterMultiPlayScreen() {
+    resetFeedback(multiPlayEls.feedback, multiPlayEls.stage);
+    setWordTextWithAnimation(multiPlayEls.wordText, "");
     showScreen("multiPlay");
 }
 
@@ -805,6 +818,7 @@ function handleRoundUpdate(round) {
     const word = ALL_WORDS[round.currentWordIndex] ?? CORRECT_WORD;
     currentRoundIsCorrectWord = round.currentWordIndex === CORRECT_WORD_INDEX;
 
+    resetFeedback(multiPlayEls.feedback, multiPlayEls.stage);
     setWordTextWithAnimation(multiPlayEls.wordText, "");
 
     window.setTimeout(() => {
