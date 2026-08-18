@@ -335,12 +335,12 @@ function handleSingleTap() {
 
         singleState.wordIsActive = false;
         singleState.waitingForCorrectTap = false;
-        setWordTextWithAnimation(singleEls.wordText, "");
 
-        // 3秒間エフェクトを維持してから次のラウンドへ
+        // 3秒間エフェクトとワードを維持してから次のラウンドへ
         window.setTimeout(() => {
             singleState.isPaused = false;
             resetFeedback(singleEls.feedback, singleEls.stage);
+            setWordTextWithAnimation(singleEls.wordText, ""); // ここで文字を消す
             advanceSingleRound();
         }, 3000);
     } else {
@@ -351,12 +351,12 @@ function handleSingleTap() {
 
         singleState.wordIsActive = false;
         singleState.waitingForCorrectTap = false;
-        setWordTextWithAnimation(singleEls.wordText, "");
 
         // 3秒ペナルティタイムとして画面を止め、その後単語出しを再開
         window.setTimeout(() => {
             singleState.isPaused = false;
             resetFeedback(singleEls.feedback, singleEls.stage);
+            setWordTextWithAnimation(singleEls.wordText, ""); // ここで文字を消す
             scheduleSingleWord();
         }, 3000);
     }

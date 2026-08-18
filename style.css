@@ -342,10 +342,10 @@ button {
     white-space: nowrap;
 }
 
-/* 3秒間維持する正解バッジ */
+/* 3秒間維持する正解バッジ（サイズを大幅に大きく） */
 .feedback-badge.badge-good {
     color: #37B24D;
-    font-size: clamp(4rem, 18vw, 6.5rem);
+    font-size: clamp(8rem, 30vw, 12rem);
     animation: popGood 3s ease-out forwards;
 }
 @keyframes popGood {
@@ -585,7 +585,6 @@ button {
     height: var(--ad-height);
     background-color: #121212;
     z-index: 1000;
-    /* padding-bottom を削除し完全に吸着させます */
 }
 
 
