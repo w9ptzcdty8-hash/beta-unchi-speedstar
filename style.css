@@ -533,19 +533,28 @@ button {
     color: var(--color-ink);
 }
 
+/* ルームID入力欄を幅広く、参加ボタンをコンパクトに */
 .join-row {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: center;
+    width: 100%;
 }
 
 .join-row .text-input {
-    flex: 1;
-    letter-spacing: 0.1em;
+    flex: 1 1 auto; /* 入力欄を幅広く確保 */
+    min-width: 0;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     text-align: center;
     font-family: var(--font-display);
     font-weight: 700;
+}
+
+.join-row .btn-join-action {
+    flex: 0 0 72px; /* 参加ボタンの幅を必要最小限に固定 */
+    padding: 0 8px;
+    white-space: nowrap;
 }
 
 .error-text {
