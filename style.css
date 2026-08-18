@@ -333,7 +333,7 @@ button {
 /* 正解／お手つきエフェクトは画面上部に固定表示し、単語（.word-blob）と重ならないようにする */
 .feedback-badge {
     position: fixed;
-    top: calc(env(safe-area-inset-top) + 64px);
+    top: calc(env(safe-area-inset-top) + 130px);
     left: 50%;
     transform: translate(-50%, -50%) scale(0);
     z-index: 950;
@@ -343,10 +343,15 @@ button {
     white-space: nowrap;
 }
 
-/* 3秒間維持する正解バッジ（上部に収まるサイズへ縮小） */
+/* 3秒間維持する正解バッジ（お手つきと同じ位置・同じ見た目のピル型、色だけ緑） */
 .feedback-badge.badge-good {
     color: #37B24D;
-    font-size: clamp(2.6rem, 11vw, 4.2rem);
+    font-size: clamp(1.4rem, 5.5vw, 2rem);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 18px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(55, 178, 77, 0.3);
+    border: 3px solid #37B24D;
     animation: popGood 3s ease-out forwards;
 }
 @keyframes popGood {
