@@ -219,11 +219,11 @@ function setWordTextWithAnimation(element, newText) {
 // FEAT-001: 合計タイムから称号情報を取得する純粋関数
 function getTitleInfo(totalMs) {
     const sec = totalMs / 1000;
-    if (sec < 5.50) return { rank: "ss", name: "👑 神速のうんち神" };
-    if (sec < 8.00) return { rank: "s", name: "⚡ 光速のうんちマスター" };
-    if (sec < 12.00) return { rank: "a", name: "💩 ベテランうんちハンター" };
-    if (sec < 17.00) return { rank: "b", name: "🏃 見習いうんちハンター" };
-    if (sec < 23.00) return { rank: "c", name: "🐢 のんびりうんち鑑賞家" };
+    if (sec < 3.00) return { rank: "ss", name: "👑 神速のうんち神" };
+    if (sec < 4.00) return { rank: "s", name: "⚡ 光速のうんちマスター" };
+    if (sec < 5.00) return { rank: "a", name: "💩 ベテランうんちハンター" };
+    if (sec < 8.00) return { rank: "b", name: "🏃 見習いうんちハンター" };
+    if (sec < 10.00) return { rank: "c", name: "🐢 のんびりうんち鑑賞家" };
     return { rank: "d", name: "💤 うんち初心者" };
 }
 
