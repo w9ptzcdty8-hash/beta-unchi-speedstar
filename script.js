@@ -2,11 +2,6 @@
 // うんちスピードスター
 // Main JavaScript (ES Module)
 // ========================================
-//
-// このファイルは type="module" として読み込まれる前提です。
-// Firebase v9 modular SDK を CDN の ESM ビルドから直接importしています。
-// （GitHub Pagesはビルドステップを持たない静的ホスティングのため、
-//   npmパッケージではなくCDNのESM URLを使用しています）
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
@@ -25,8 +20,6 @@ import {
 // ========================================
 // Firebase設定
 // ========================================
-// ★★★ ここを自分のFirebaseプロジェクトの設定値に差し替えてください ★★★
-// Firebaseコンソール > プロジェクトの設定 > 全般 > マイアプリ から取得できます。
 const firebaseConfig = {
   apiKey: "AIzaSyCHcw78cImehf65vogNXPyxm2C4LpJlciU",
   authDomain: "unch-speedstar.firebaseapp.com",
@@ -47,7 +40,6 @@ try {
     db = getDatabase(firebaseApp);
     firebaseReady = true;
 } catch (err) {
-    // Firebase未設定でも「ひとりであそぶ」はローカルだけで動作するようにする
     console.warn("Firebase初期化に失敗しました（設定値を確認してください）", err);
     firebaseReady = false;
 }
@@ -58,32 +50,18 @@ try {
 
 const CORRECT_WORD = "うんち";
 
-// 「うんち」以外のフェイント単語（固定リスト・全レベル共通）
+// 「うんち」以外のフェイント単語
 const FAKE_WORDS = [
-    "らんち",
-    "ぱんち",
-    "むんち",
-    "ぷんち",
-    "るんち",
-    "うんつ",
-    "うんぢ",
-    "うんと",
-    "うんば",
-    "うんま",
-    "うんみ",
-    "うんゆ",
-    "うんり",
-    "うんぎ",
-    "うんご",
-    "うんぷ",
-    "うんむ",
-    "うんく",
-    "うんす"
+    "らんち", "ぱんち", "むんち", "ぷんち", "るんち", "うんつ", "うんぢ", "うんと",
+    "うんば", "うんま", "うんみ", "うんゆ", "うんり", "うんぎ", "うんご", "うんぷ",
+    "うんむ", "うんく", "うんす", "うんこ", "うんて", "うんちく", "うんちゃん",
+    "うんち〜", "うんしょう", "うんけい", "うんそう", "うんめい", "うんにょ", "うんどう",
+    "うんちん", "うんかい", "うんが", "うんぜん", "うんてん", "うんねん", "うんぽん",
+    "うんすい", "うんがく", "うんてんし", "うんぴ", "うんちっち", "うんちー", "うんちや", "うんちよ"
 ];
 
-// 全単語リスト（フェイク単語 + 正解「うんち」を末尾に追加）
-// インデックスの並びはCloud Functions側（functions/index.js）と必ず一致させること。
-const ALL_WORDS = FAKE_WORDS.concat([CORRECT_WORD]);
+const UNIQUE_FAKE_WORDS = Array.from(new Set(FAKE_WORDS)).filter(w => w !== CORRECT_WORD);
+const ALL_WORDS = UNIQUE_FAKE_WORDS.concat([CORRECT_WORD]);
 const CORRECT_WORD_INDEX = ALL_WORDS.length - 1;
 
 // difficultyLevel: 1=EASY, 2=NORMAL, 3=HARD, 4=CHAOS
@@ -94,13 +72,18 @@ const DIFFICULTY_SETTINGS = {
     4: { name: "CHAOS", min: 200, max: 1300, fakeRate: 0.70 }
 };
 
-// ひとりであそぶ：5回勝負の難易度進行
 const SINGLE_LEVEL_PROGRESSION = [1, 1, 2, 3, 4];
-
-const MISS_PENALTY_MS = 500; // お手つき1回につき+0.5秒
-const ROUND_TRANSITION_DELAY_MS = 900; // ラウンド間の演出待ち
-
+const MISS_PENALTY_MS = 500;
+const ROUND_TRANSITION_DELAY_MS = 900;
 const LOCAL_HIGHSCORE_KEY = "unchiSpeedstar_highscore_ms";
+
+const ANIMATION_CLASSES = [
+    "anim-pop",
+    "anim-slide-left",
+    "anim-slide-right",
+    "anim-fade-blur",
+    "anim-rotate-tilt"
+];
 
 // ========================================
 // 効果音
@@ -119,12 +102,8 @@ function playSound(key) {
     if (!src) return;
     try {
         src.currentTime = 0;
-        src.play().catch(() => {
-            // ユーザー操作前の自動再生ブロックなどは無視する
-        });
-    } catch (err) {
-        // 再生できない環境でもゲームは継続させる
-    }
+        src.play().catch(() => {});
+    } catch (err) {}
 }
 
 // ========================================
@@ -152,7 +131,7 @@ function showScreen(key) {
 // ========================================
 
 function randomPlayerName() {
-    const n = Math.floor(Math.random() * 900) + 100; // 100〜999
+    const n = Math.floor(Math.random() * 900) + 100;
     return `Player${n}`;
 }
 
@@ -173,33 +152,60 @@ function formatSeconds(ms) {
     return (ms / 1000).toFixed(2) + "秒";
 }
 
-function flash(overlayEl, type) {
+function triggerFeedback(overlayEl, feedbackBadgeEl, stageEl, type) {
     overlayEl.classList.remove("flash-good", "flash-bad");
-    // reflow to restart animation
     void overlayEl.offsetWidth;
     overlayEl.classList.add(type === "good" ? "flash-good" : "flash-bad");
     window.setTimeout(() => {
         overlayEl.classList.remove("flash-good", "flash-bad");
     }, 220);
+
+    if (feedbackBadgeEl) {
+        feedbackBadgeEl.classList.remove("badge-good", "badge-bad");
+        void feedbackBadgeEl.offsetWidth;
+        if (type === "good") {
+            feedbackBadgeEl.textContent = "〇";
+            feedbackBadgeEl.classList.add("badge-good");
+        } else {
+            feedbackBadgeEl.textContent = "✕ お手つき！";
+            feedbackBadgeEl.classList.add("badge-bad");
+        }
+    }
+
+    if (type === "bad" && stageEl) {
+        stageEl.classList.remove("shake-stage");
+        void stageEl.offsetWidth;
+        stageEl.classList.add("shake-stage");
+    }
 }
 
-// 難易度設定にもとづき、次に出す単語を抽選する
 function pickWord(difficultyLevel) {
     const settings = DIFFICULTY_SETTINGS[difficultyLevel];
     const isFake = Math.random() < settings.fakeRate;
     if (!isFake) {
         return { word: CORRECT_WORD, isCorrect: true };
     }
-    const fake = FAKE_WORDS[Math.floor(Math.random() * FAKE_WORDS.length)];
+    const fake = UNIQUE_FAKE_WORDS[Math.floor(Math.random() * UNIQUE_FAKE_WORDS.length)];
     return { word: fake, isCorrect: false };
 }
 
-// 難易度設定にもとづき、次の表示間隔（ms）を抽選する
 function pickInterval(difficultyLevel) {
     const settings = DIFFICULTY_SETTINGS[difficultyLevel];
     return Math.floor(settings.min + Math.random() * (settings.max - settings.min));
 }
 
+// アニメーション付きで単語を表示更新
+function setWordTextWithAnimation(element, newText) {
+    element.textContent = "";
+    ANIMATION_CLASSES.forEach(cls => element.classList.remove(cls));
+
+    if (!newText) return;
+
+    void element.offsetWidth; // Reflow
+    element.textContent = newText;
+    const animClass = ANIMATION_CLASSES[Math.floor(Math.random() * ANIMATION_CLASSES.length)];
+    element.classList.add(animClass);
+}
 
 // ========================================
 // ひとりであそぶ
@@ -207,6 +213,8 @@ function pickInterval(difficultyLevel) {
 
 const singleEls = {
     flash: document.getElementById("single-flash"),
+    feedback: document.getElementById("single-feedback"),
+    stage: document.getElementById("single-stage"),
     roundTimes: document.getElementById("single-round-times"),
     wordBlob: document.getElementById("single-word-blob"),
     wordText: document.getElementById("single-word-text"),
@@ -282,7 +290,8 @@ function showSingleWord(level) {
     if (!singleState || singleState.finished) return;
 
     const { word, isCorrect } = pickWord(level);
-    singleEls.wordText.textContent = word;
+    setWordTextWithAnimation(singleEls.wordText, word);
+
     singleState.wordIsActive = true;
     singleState.waitingForCorrectTap = isCorrect;
     if (isCorrect) {
@@ -290,7 +299,7 @@ function showSingleWord(level) {
     }
     playSound("word");
 
-    // タップされなくても一定時間で次の単語へ進む（「うんち」も例外にしない）
+    // 次の単語切り替えを予約
     scheduleSingleWord();
 }
 
@@ -298,7 +307,6 @@ function handleSingleTap() {
     if (!singleState || singleState.finished || !singleState.wordIsActive) return;
 
     if (singleState.waitingForCorrectTap) {
-        // 正解タップ：保留中の「次の単語へ」タイマーをキャンセルする
         if (singleState.wordTimeoutId) {
             window.clearTimeout(singleState.wordTimeoutId);
             singleState.wordTimeoutId = null;
@@ -309,18 +317,17 @@ function handleSingleTap() {
         singleState.roundTimesMs[singleState.roundIndex] = reaction + missPenalty;
 
         playSound("correct");
-        flash(singleEls.flash, "good");
+        triggerFeedback(singleEls.flash, singleEls.feedback, singleEls.stage, "good");
 
         singleState.wordIsActive = false;
         singleState.waitingForCorrectTap = false;
-        singleEls.wordText.textContent = "";
+        setWordTextWithAnimation(singleEls.wordText, "");
 
         advanceSingleRound();
     } else {
-        // お手つき（フェイント単語をタップ）
         singleState.roundMissCounts[singleState.roundIndex] += 1;
         playSound("miss");
-        flash(singleEls.flash, "bad");
+        triggerFeedback(singleEls.flash, singleEls.feedback, singleEls.stage, "bad");
     }
 }
 
@@ -399,9 +406,8 @@ singleEls.toTitleBtn.addEventListener("click", () => showScreen("title"));
 
 document.getElementById("btn-goto-single").addEventListener("click", startSinglePlay);
 
-
 // ========================================
-// ハイスコア画面（ローカル＋Firebaseランキング）
+// ハイスコア画面
 // ========================================
 
 const highscoreEls = {
@@ -487,7 +493,6 @@ document.getElementById("btn-goto-highscore").addEventListener("click", () => {
 });
 highscoreEls.toTitleBtn.addEventListener("click", () => showScreen("title"));
 
-
 // ========================================
 // みんなであそぶ（通信対戦）
 // ========================================
@@ -508,6 +513,8 @@ const roomWaitEls = {
 
 const multiPlayEls = {
     flash: document.getElementById("multi-flash"),
+    feedback: document.getElementById("multi-feedback"),
+    stage: document.getElementById("multi-stage"),
     scoreboard: document.getElementById("multi-scoreboard"),
     wordBlob: document.getElementById("multi-word-blob"),
     wordText: document.getElementById("multi-word-text"),
@@ -527,7 +534,7 @@ let multi = {
     playerId: null,
     playerName: null,
     maxPlayers: null,
-    listeners: [] // { path, callback } を記録し、退出時にoffする
+    listeners: []
 };
 
 function multiWatch(path, callback) {
@@ -652,7 +659,6 @@ async function joinRoom(roomId) {
             joinedAt: serverTimestamp()
         });
 
-        // playerCountはトランザクションで安全に加算する
         await runTransaction(ref(db, `rooms/${roomId}/playerCount`), (current) => (current || 0) + 1);
 
         onDisconnect(ref(db, `rooms/${roomId}/players/${playerId}`)).remove();
@@ -688,18 +694,10 @@ function enterRoomWaitScreen() {
         if (round) handleRoundUpdate(round);
     });
 
-    // 対戦画面・結果画面のスコアボード用の監視もあわせて設定しておく
     attachScoreboardWatcher();
-
-    // 人数がそろったら自動でゲームを開始する（Cloud Functionsを使わないフロント完結版）
     watchAutoStart();
 }
 
-/**
- * players を監視し、maxPlayersに達したら state を "waiting" → "playing" に変更して
- * 最初のラウンドを開始する。
- * 複数クライアントが同時に検知しても、トランザクションにより実行されるのは1回だけになる。
- */
 function watchAutoStart() {
     multiWatch(`rooms/${multi.roomId}/players`, async (snapshot) => {
         const players = snapshot.val() || {};
@@ -710,7 +708,7 @@ function watchAutoStart() {
         try {
             const result = await runTransaction(ref(db, `rooms/${multi.roomId}/state`), (current) => {
                 if (current === "waiting") return "playing";
-                return; // "waiting"以外なら何もしない（abort）
+                return;
             });
 
             if (result.committed) {
@@ -760,7 +758,6 @@ function enterMultiPlayScreen() {
     showScreen("multiPlay");
 }
 
-// players監視をスコアボード描画（対戦画面・結果画面）に反映する
 function attachScoreboardWatcher() {
     multiWatch(`rooms/${multi.roomId}/players`, (snapshot) => {
         const players = snapshot.val() || {};
@@ -776,16 +773,11 @@ function attachScoreboardWatcher() {
     });
 }
 
-/**
- * 新しいラウンドを開始する（Cloud Functionsを使わず、フロント側で完結させる版）。
- * difficultyLevelをランダムに決め、その難易度のフェイント率にもとづいて
- * ALL_WORDS の中から単語を1つ選び、表示間隔とあわせて rooms/{roomId}/round に書き込む。
- */
 async function startRound() {
     if (!multi.roomId) return;
 
-    const difficultyLevel = Math.floor(Math.random() * 4) + 1; // 1〜4のランダム
-    const { word } = pickWord(difficultyLevel); // 難易度のfakeRateに応じてALL_WORDSから選ぶ
+    const difficultyLevel = Math.floor(Math.random() * 4) + 1;
+    const { word } = pickWord(difficultyLevel);
     const currentWordIndex = ALL_WORDS.indexOf(word);
     const nextInterval = pickInterval(difficultyLevel);
 
@@ -795,7 +787,7 @@ async function startRound() {
             difficultyLevel,
             currentWordIndex,
             nextInterval,
-            winnerId: null // このラウンドの正解タップ最速者（未確定はnull）
+            winnerId: null
         });
     } catch (err) {
         console.warn("ラウンド開始に失敗しました", err);
@@ -803,7 +795,7 @@ async function startRound() {
 }
 
 function handleRoundUpdate(round) {
-    if (round.roundId === currentRoundId) return; // 既に処理済みのラウンド
+    if (round.roundId === currentRoundId) return;
     currentRoundId = round.roundId;
     hasTappedThisRound = false;
 
@@ -813,26 +805,19 @@ function handleRoundUpdate(round) {
     const word = ALL_WORDS[round.currentWordIndex] ?? CORRECT_WORD;
     currentRoundIsCorrectWord = round.currentWordIndex === CORRECT_WORD_INDEX;
 
-    multiPlayEls.wordText.textContent = "";
+    setWordTextWithAnimation(multiPlayEls.wordText, "");
 
     window.setTimeout(() => {
-        if (round.roundId !== currentRoundId) return; // 既に次のラウンドに進んでいる
-        multiPlayEls.wordText.textContent = word;
+        if (round.roundId !== currentRoundId) return;
+        setWordTextWithAnimation(multiPlayEls.wordText, word);
         playSound("word");
 
-        // 誰もタップしないまま一定時間が経過したら、次のラウンドへ自動的に進める
         window.setTimeout(() => {
             handleRoundTimeout(round.roundId);
         }, Math.max(300, round.nextInterval || 0));
     }, Math.max(0, round.nextInterval || 0));
 }
 
-/**
- * 一定時間タップが無かった場合の処理。
- * このラウンドがまだ勝者未確定（winnerIdがnull）なら、トランザクションで
- * 「タイムアウト処理の担当」を1クライアントだけに確保し、次のラウンドを開始する。
- * （複数端末が同時にタイムアウトを検知しても、ラウンドが二重に進まないようにするため）
- */
 async function handleRoundTimeout(roundId) {
     if (roundId !== currentRoundId || !multi.roomId) return;
 
@@ -840,7 +825,7 @@ async function handleRoundTimeout(roundId) {
         const claim = await runTransaction(
             ref(db, `rooms/${multi.roomId}/round/winnerId`),
             (current) => {
-                if (current) return; // 既に正解者確定 or 他端末がタイムアウト処理済み（abort）
+                if (current) return;
                 return "__timeout__";
             }
         );
@@ -873,16 +858,14 @@ multiPlayEls.wordBlob.addEventListener("click", async () => {
 
     const tapWordIndex = ALL_WORDS.indexOf(multiPlayEls.wordText.textContent);
 
-    // タップ履歴として記録しておく（結果確認・デバッグ用。判定自体には使わない）
     set(ref(db, `rooms/${multi.roomId}/rounds/${currentRoundId}/taps/${multi.playerId}`), {
         tapTime: Date.now(),
         tapWordIndex
     }).catch(() => {});
 
     if (!currentRoundIsCorrectWord) {
-        // 誤タップ：−1点。ラウンドはそのまま続行する（最初に正解した人が出るまで進む）
         playSound("miss");
-        flash(multiPlayEls.flash, "bad");
+        triggerFeedback(multiPlayEls.flash, multiPlayEls.feedback, multiPlayEls.stage, "bad");
         try {
             await runTransaction(ref(db, `rooms/${multi.roomId}/players/${multi.playerId}/score`), (current) => (
                 (current || 0) - 1
@@ -893,25 +876,21 @@ multiPlayEls.wordBlob.addEventListener("click", async () => {
         return;
     }
 
-    // 正解タップ：このラウンドで最初に「winnerId」を確保できたプレイヤーだけが+1点になる。
-    // Firebaseのトランザクションは同時に届いても1件ずつ順番に処理されるため、
-    // Cloud Functionsが無くても「早いもの勝ち」の判定として機能する。
     try {
         const claim = await runTransaction(
             ref(db, `rooms/${multi.roomId}/round/winnerId`),
             (current) => {
-                if (current) return; // 既に他のプレイヤーが確定済み（abort）
+                if (current) return;
                 return multi.playerId;
             }
         );
 
         if (!claim.committed) {
-            // 自分より先に他のプレイヤーが正解と判定された（ポイントは入らない）
             return;
         }
 
         playSound("correct");
-        flash(multiPlayEls.flash, "good");
+        triggerFeedback(multiPlayEls.flash, multiPlayEls.feedback, multiPlayEls.stage, "good");
 
         const scoreResult = await runTransaction(
             ref(db, `rooms/${multi.roomId}/players/${multi.playerId}/score`),
@@ -923,7 +902,6 @@ multiPlayEls.wordBlob.addEventListener("click", async () => {
             await set(ref(db, `rooms/${multi.roomId}/state`), "finished");
             await set(ref(db, `rooms/${multi.roomId}/winner`), multi.playerId);
         } else {
-            // 次のラウンドを少し間を置いてから開始する（勝者になったクライアントが担当）
             window.setTimeout(() => {
                 startRound();
             }, ROUND_TRANSITION_DELAY_MS);
@@ -954,7 +932,6 @@ multiResultEls.toTitleBtn.addEventListener("click", async () => {
     showScreen("title");
 });
 
-
 // ========================================
 // 初期化
 // ========================================
@@ -965,3 +942,4 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
