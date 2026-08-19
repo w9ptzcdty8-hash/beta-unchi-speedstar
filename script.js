@@ -63,14 +63,16 @@ const UNIQUE_FAKE_WORDS = Array.from(new Set(FAKE_WORDS)).filter(w => w !== CORR
 const ALL_WORDS = UNIQUE_FAKE_WORDS.concat([CORRECT_WORD]);
 const CORRECT_WORD_INDEX = ALL_WORDS.length - 1;
 
+// CHG-001: 難易度ごとのダミー出現確率（fakeRate）を変更
 const DIFFICULTY_SETTINGS = {
-    1: { name: "EASY", min: 1300, max: 1300, fakeRate: 0.20 },
-    2: { name: "NORMAL", min: 800, max: 1300, fakeRate: 0.35 },
-    3: { name: "HARD", min: 400, max: 1300, fakeRate: 0.50 },
-    4: { name: "CHAOS", min: 200, max: 1300, fakeRate: 0.70 }
+    1: { name: "EASY", min: 1000, max: 1300, fakeRate: 0.60 },   // 正解率40%
+    2: { name: "NORMAL", min: 600, max: 1300, fakeRate: 0.70 }, // 正解率30%
+    3: { name: "HARD", min: 400, max: 1300, fakeRate: 0.80 },   // 正解率20%
+    4: { name: "CHAOS", min: 100, max: 1300, fakeRate: 0.85 }   // 正解率15%
 };
 
-const SINGLE_LEVEL_PROGRESSION = [1, 1, 2, 3, 4];
+// CHG-002: 「ひとりであそぶ」の進行構成変更 (ラウンド2を NORMAL に)
+const SINGLE_LEVEL_PROGRESSION = [1, 2, 2, 3, 4];
 const MISS_PENALTY_MS = 500;
 const LOCAL_HIGHSCORE_LIST_KEY = "unchiSpeedstar_highscore_list_ms";
 const EFFECT_WAIT_MS = 2000; // 演出待機時間（2.0秒）
@@ -212,6 +214,17 @@ function setWordTextWithAnimation(element, newText) {
     element.textContent = newText;
     const animClass = ANIMATION_CLASSES[Math.floor(Math.random() * ANIMATION_CLASSES.length)];
     element.classList.add(animClass);
+}
+
+// FEAT-001: 合計タイムから称号情報を取得する純粋関数
+function getTitleInfo(totalMs) {
+    const sec = totalMs / 1000;
+    if (sec < 2.50) return { rank: "ss", name: "👑 神速のうんち神" };
+    if (sec < 3.00) return { rank: "s", name: "⚡ 光速のうんちマスター" };
+    if (sec < 4.00) return { rank: "a", name: "💩 ベテランうんちハンター" };
+    if (sec < 6.00) return { rank: "b", name: "🏃 見習いうんちコレクター" };
+    if (sec < 8.00) return { rank: "c", name: "🐢 のんびりうんち鑑賞家" };
+    return { rank: "d", name: "💤 うんち初心者" };
 }
 
 // ========================================
@@ -434,6 +447,16 @@ function finishSinglePlay() {
 
     singleEls.resultNewRecord.classList.toggle("is-hidden", !isNewTopRecord);
     singleEls.resultTotal.textContent = formatSeconds(totalMs);
+    
+    // FEAT-001: リザルト画面での称号の表示
+    const titleInfo = getTitleInfo(totalMs);
+    const titleBadge = document.getElementById("single-result-title-badge");
+    if (titleBadge) {
+        titleBadge.textContent = titleInfo.name;
+        titleBadge.className = `title-badge rank-${titleInfo.rank}`;
+        titleBadge.classList.remove("is-hidden");
+    }
+
     singleEls.resultDetail.innerHTML = "";
 
     for (let i = 0; i < 5; i++) {
@@ -515,8 +538,13 @@ function renderHighscoreScreen() {
         highscoreEls.localList.innerHTML = '<li class="highscore-loading">記録なし</li>';
     } else {
         localBest.forEach((ms, index) => {
+            const titleInfo = getTitleInfo(ms); // FEAT-001: 称号情報を取得
             const li = document.createElement("li");
-            li.innerHTML = `<span>${index + 1}位</span><span>${formatSeconds(ms)}</span>`;
+            li.innerHTML = `
+                <span class="hs-rank">${index + 1}位</span>
+                <span class="hs-title rank-${titleInfo.rank}">${titleInfo.name}</span>
+                <span class="hs-time">${formatSeconds(ms)}</span>
+            `;
             highscoreEls.localList.appendChild(li);
         });
     }
@@ -1039,4 +1067,5 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
 

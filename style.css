@@ -607,3 +607,54 @@ button {
     z-index: 1000;
 }
 
+/* ========================================
+   称号バッジ (FEAT-001)
+======================================== */
+.title-badge {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-align: center;
+    padding: 6px 16px;
+    border-radius: 999px;
+    margin: 0 auto 12px;
+    display: inline-block;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+}
+.title-badge.is-hidden { display: none; }
+
+.title-badge.rank-ss { background: #FFD700; color: #8A5A2E; }
+.title-badge.rank-s { background: #FF9800; color: #FFFFFF; }
+.title-badge.rank-a { background: #E91E63; color: #FFFFFF; }
+.title-badge.rank-b { background: #2196F3; color: #FFFFFF; }
+.title-badge.rank-c { background: #4CAF50; color: #FFFFFF; }
+.title-badge.rank-d { background: #9E9E9E; color: #FFFFFF; }
+
+.highscore-local-list li {
+    align-items: center;
+}
+.hs-rank {
+    font-weight: 900;
+    width: 28px;
+}
+.hs-title {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin: 0 8px;
+    flex: 1;
+    text-align: left;
+}
+.hs-title.rank-ss { background: #FFF5E5; color: #D98E1F; border: 1px solid #F2A93B; }
+.hs-title.rank-s { background: #FFF3E0; color: #E65100; border: 1px solid #FF9800; }
+.hs-title.rank-a { background: #FCE4EC; color: #C2185B; border: 1px solid #E91E63; }
+.hs-title.rank-b { background: #E3F2FD; color: #1565C0; border: 1px solid #2196F3; }
+.hs-title.rank-c { background: #E8F5E9; color: #2E7D32; border: 1px solid #4CAF50; }
+.hs-title.rank-d { background: #F5F5F5; color: #616161; border: 1px solid #9E9E9E; }
+.hs-time {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--color-lavender-dark);
+}
+
+
