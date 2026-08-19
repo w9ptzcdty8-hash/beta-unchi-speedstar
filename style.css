@@ -423,7 +423,7 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 }
 
 .total-time {
@@ -431,6 +431,14 @@ button {
     font-size: 1.05rem;
     font-weight: 800;
     color: var(--color-brown-dark);
+}
+
+/* 画面下のリアルタイム経過表示 */
+.word-elapsed-time {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a08a6f;
+    min-height: 1.2em;
 }
 
 /* 結果画面 */
@@ -456,14 +464,39 @@ button {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     background: var(--color-bg-soft);
     border-radius: 12px;
     padding: 10px 12px;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
+    max-height: 40vh;
+    overflow-y: auto;
 }
 
-.result-detail .result-row { display: flex; justify-content: space-between; }
+.result-detail .result-row { 
+    display: flex; 
+    flex-direction: column;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    gap: 2px;
+}
+
+.result-row-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 800;
+    color: var(--color-brown-dark);
+}
+
+.result-row-breakdown {
+    display: flex;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: #666;
+    flex-wrap: wrap;
+}
+
 .new-record { text-align: center; font-weight: 800; color: var(--color-good); font-size: 1rem; }
 
 /* フォーム部品 */
@@ -656,5 +689,4 @@ button {
     font-weight: 700;
     color: var(--color-lavender-dark);
 }
-
 

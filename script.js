@@ -63,7 +63,7 @@ const UNIQUE_FAKE_WORDS = Array.from(new Set(FAKE_WORDS)).filter(w => w !== CORR
 const ALL_WORDS = UNIQUE_FAKE_WORDS.concat([CORRECT_WORD]);
 const CORRECT_WORD_INDEX = ALL_WORDS.length - 1;
 
-// CHG-001: 難易度ごとのダミー出現確率（fakeRate）を変更
+// CHG-001: 難易度ごとのダミー出現確率（fakeRate）
 const DIFFICULTY_SETTINGS = {
     1: { name: "EASY", min: 1000, max: 1300, fakeRate: 0.60 },   // 正解率40%
     2: { name: "NORMAL", min: 600, max: 1300, fakeRate: 0.70 }, // 正解率30%
@@ -222,7 +222,7 @@ function getTitleInfo(totalMs) {
     if (sec < 2.50) return { rank: "ss", name: "👑 神速のうんち神" };
     if (sec < 3.00) return { rank: "s", name: "⚡ 光速のうんちマスター" };
     if (sec < 4.00) return { rank: "a", name: "💩 ベテランうんちハンター" };
-    if (sec < 6.00) return { rank: "b", name: "🏃 見習いうんちコレクター" };
+    if (sec < 6.00) return { rank: "b", name: "🏃 見習いうんちハンター" };
     if (sec < 8.00) return { rank: "c", name: "🐢 のんびりうんち鑑賞家" };
     return { rank: "d", name: "💤 うんち初心者" };
 }
@@ -239,6 +239,7 @@ const singleEls = {
     wordBlob: document.getElementById("single-word-blob"),
     wordText: document.getElementById("single-word-text"),
     totalTime: document.getElementById("single-total-time"),
+    wordElapsed: document.getElementById("single-word-elapsed"),
     quitBtn: document.getElementById("btn-single-quit"),
     resultTotal: document.getElementById("single-result-total"),
     resultDetail: document.getElementById("single-result-detail"),
@@ -253,13 +254,16 @@ function createSingleState() {
     return {
         roundIndex: 0,
         roundTimesMs: [0, 0, 0, 0, 0],
-        roundMissCounts: [0, 0, 0, 0, 0],
+        roundTapTimesMs: [0, 0, 0, 0, 0],       // 各ラウンドの純粋なタップ反応時間
+        roundMissedTimesMs: [0, 0, 0, 0, 0],    // 各ラウンドの見逃した正解タイム
+        roundMissCounts: [0, 0, 0, 0, 0],       // 各ラウンドのお手つき回数
         wordTimeoutId: null,
         wordStartedAt: 0,
         waitingForCorrectTap: false,
         wordIsActive: false,
         finished: false,
-        isPaused: false
+        isPaused: false,
+        elapsedTimerAnimId: null               // リアルタイム経過表示用アニメーションフレームID
     };
 }
 
@@ -288,6 +292,21 @@ function updateSingleTotalDisplay() {
     singleEls.totalTime.textContent = `合計タイム：${formatSeconds(doneTotal)}`;
 }
 
+// リアルタイム単語経過時間の更新関数
+function updateWordElapsedDisplay() {
+    if (!singleState || singleState.finished) return;
+
+    if (singleState.wordIsActive && singleState.wordStartedAt > 0) {
+        const now = performance.now();
+        const elapsed = (now - singleState.wordStartedAt) / 1000;
+        singleEls.wordElapsed.textContent = `単語経過: ${elapsed.toFixed(2)}秒`;
+    } else {
+        singleEls.wordElapsed.textContent = "単語経過: 0.00秒";
+    }
+
+    singleState.elapsedTimerAnimId = requestAnimationFrame(updateWordElapsedDisplay);
+}
+
 function startSinglePlay() {
     stopSinglePlay();
     singleState = createSingleState();
@@ -297,6 +316,9 @@ function startSinglePlay() {
     updateSingleTotalDisplay();
     showScreen("single");
     scheduleSingleWord();
+    
+    // リアルタイム経過時間更新ループを開始
+    updateWordElapsedDisplay();
 }
 
 function scheduleSingleWord() {
@@ -313,9 +335,10 @@ function scheduleSingleWord() {
 function showSingleWord(level) {
     if (!singleState || singleState.finished || singleState.isPaused) return;
 
-    // 前の単語が「うんち」で見逃されていた（タップされなかった）場合、その時間を加算
+    // 前の単語が「うんち」で見逃されていた（タップされなかった）場合、その時間を記録・加算
     if (singleState.wordIsActive && singleState.waitingForCorrectTap && singleState.wordStartedAt > 0) {
         const missedTime = performance.now() - singleState.wordStartedAt;
+        singleState.roundMissedTimesMs[singleState.roundIndex] += missedTime;
         singleState.roundTimesMs[singleState.roundIndex] += missedTime;
     }
 
@@ -325,11 +348,7 @@ function showSingleWord(level) {
 
     singleState.wordIsActive = true;
     singleState.waitingForCorrectTap = isCorrect;
-    if (isCorrect) {
-        singleState.wordStartedAt = performance.now();
-    } else {
-        singleState.wordStartedAt = 0;
-    }
+    singleState.wordStartedAt = performance.now();
     playSound("word");
 
     scheduleSingleWord();
@@ -349,6 +368,8 @@ function handleSingleTap() {
     if (isCorrectTap) {
         // --- 正解 ---
         const reaction = performance.now() - singleState.wordStartedAt;
+        singleState.roundTapTimesMs[singleState.roundIndex] = reaction;
+
         const missPenalty = singleState.roundMissCounts[singleState.roundIndex] * MISS_PENALTY_MS;
         singleState.roundTimesMs[singleState.roundIndex] += (reaction + missPenalty);
 
@@ -375,6 +396,7 @@ function handleSingleTap() {
 
         singleState.wordIsActive = false;
         singleState.waitingForCorrectTap = false;
+        singleState.wordStartedAt = 0;
 
         // 2秒間待機後、単語タイマーを再開
         window.setTimeout(() => {
@@ -435,6 +457,10 @@ function saveLocalHighscore(totalMs) {
 }
 
 function finishSinglePlay() {
+    if (singleState.elapsedTimerAnimId) {
+        cancelAnimationFrame(singleState.elapsedTimerAnimId);
+    }
+
     const totalMs = singleState.roundTimesMs.reduce((a, b) => a + b, 0);
     const isNewTopRecord = saveLocalHighscore(totalMs);
 
@@ -459,14 +485,29 @@ function finishSinglePlay() {
 
     singleEls.resultDetail.innerHTML = "";
 
+    // 各ラウンドのタイム内訳（タップタイム・見逃し・お手つき）を表示
     for (let i = 0; i < 5; i++) {
         const row = document.createElement("div");
         row.className = "result-row";
         const level = SINGLE_LEVEL_PROGRESSION[i];
         const levelName = DIFFICULTY_SETTINGS[level].name;
-        row.innerHTML = `<span>${i + 1}回目（${levelName}）</span><span>${formatSeconds(
-            singleState.roundTimesMs[i]
-        )}${singleState.roundMissCounts[i] > 0 ? ` （お手つき${singleState.roundMissCounts[i]}回）` : ""}</span>`;
+
+        const roundTotal = singleState.roundTimesMs[i];
+        const tapTime = singleState.roundTapTimesMs[i];
+        const missedTime = singleState.roundMissedTimesMs[i];
+        const missCount = singleState.roundMissCounts[i];
+
+        row.innerHTML = `
+            <div class="result-row-header">
+                <span>${i + 1}回目（${levelName}）</span>
+                <span>${formatSeconds(roundTotal)}</span>
+            </div>
+            <div class="result-row-breakdown">
+                <span>タップ: ${formatSeconds(tapTime)}</span>
+                ${missedTime > 0 ? `<span>見逃し: +${formatSeconds(missedTime)}</span>` : ""}
+                ${missCount > 0 ? `<span>お手つき: ${missCount}回(+${formatSeconds(missCount * MISS_PENALTY_MS)})</span>` : ""}
+            </div>
+        `;
         singleEls.resultDetail.appendChild(row);
     }
 
@@ -474,8 +515,13 @@ function finishSinglePlay() {
 }
 
 function stopSinglePlay() {
-    if (singleState && singleState.wordTimeoutId) {
-        window.clearTimeout(singleState.wordTimeoutId);
+    if (singleState) {
+        if (singleState.wordTimeoutId) {
+            window.clearTimeout(singleState.wordTimeoutId);
+        }
+        if (singleState.elapsedTimerAnimId) {
+            cancelAnimationFrame(singleState.elapsedTimerAnimId);
+        }
     }
     singleState = null;
 }
@@ -1067,5 +1113,4 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
-
 
