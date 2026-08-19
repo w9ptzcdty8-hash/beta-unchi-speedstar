@@ -65,10 +65,10 @@ const CORRECT_WORD_INDEX = ALL_WORDS.length - 1;
 
 // CHG-001: 難易度ごとのダミー出現確率（fakeRate）を変更
 const DIFFICULTY_SETTINGS = {
-    1: { name: "EASY", min: 1300, max: 1300, fakeRate: 0.60 },   // 正解率40%
-    2: { name: "NORMAL", min: 800, max: 1300, fakeRate: 0.70 }, // 正解率30%
+    1: { name: "EASY", min: 1000, max: 1300, fakeRate: 0.60 },   // 正解率40%
+    2: { name: "NORMAL", min: 600, max: 1300, fakeRate: 0.70 }, // 正解率30%
     3: { name: "HARD", min: 400, max: 1300, fakeRate: 0.80 },   // 正解率20%
-    4: { name: "CHAOS", min: 200, max: 1300, fakeRate: 0.85 }   // 正解率15%
+    4: { name: "CHAOS", min: 100, max: 1300, fakeRate: 0.85 }   // 正解率15%
 };
 
 // CHG-002: 「ひとりであそぶ」の進行構成変更 (ラウンド2を NORMAL に)
@@ -219,11 +219,11 @@ function setWordTextWithAnimation(element, newText) {
 // FEAT-001: 合計タイムから称号情報を取得する純粋関数
 function getTitleInfo(totalMs) {
     const sec = totalMs / 1000;
-    if (sec < 3.00) return { rank: "ss", name: "👑 神速のうんち神" };
-    if (sec < 4.00) return { rank: "s", name: "⚡ 光速のうんちマスター" };
-    if (sec < 5.00) return { rank: "a", name: "💩 ベテランうんちハンター" };
-    if (sec < 8.00) return { rank: "b", name: "🏃 見習いうんちハンター" };
-    if (sec < 10.00) return { rank: "c", name: "🐢 のんびりうんち鑑賞家" };
+    if (sec < 2.50) return { rank: "ss", name: "👑 神速のうんち神" };
+    if (sec < 3.00) return { rank: "s", name: "⚡ 光速のうんちマスター" };
+    if (sec < 4.00) return { rank: "a", name: "💩 ベテランうんちハンター" };
+    if (sec < 6.00) return { rank: "b", name: "🏃 見習いうんちコレクター" };
+    if (sec < 8.00) return { rank: "c", name: "🐢 のんびりうんち鑑賞家" };
     return { rank: "d", name: "💤 うんち初心者" };
 }
 
