@@ -17,6 +17,14 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
 
+// 単語データを外部ファイル(words.js)から読み込み
+import {
+    CORRECT_WORD,
+    UNIQUE_FAKE_WORDS,
+    ALL_WORDS,
+    CORRECT_WORD_INDEX
+} from "./words.js";
+
 // ========================================
 // Firebase設定
 // ========================================
@@ -45,23 +53,8 @@ try {
 }
 
 // ========================================
-// 定数：単語リスト・難易度設定
+// 定数：難易度設定
 // ========================================
-
-const CORRECT_WORD = "うんち";
-
-const FAKE_WORDS = [
-    "らんち", "ぱんち", "むんち", "ぷんち", "るんち", "うんつ", "うんぢ", "うんと",
-    "うんば", "うんま", "うんみ", "うんゆ", "うんり", "うんぎ", "うんご", "うんぷ",
-    "うんむ", "うんく", "うんす", "うんこ", "うんて", "うんちく", "うんちゃん",
-    "うんち〜", "うんしょう", "うんけい", "うんそう", "うんめい", "うんにょ", "うんどう",
-    "うんちん", "うんかい", "うんが", "うんぜん", "うんてん", "うんねん", "うんぽん",
-    "うんすい", "うんがく", "うんてんし", "うんぴ", "うんちっち", "うんちー", "うんちや", "うんちよ"
-];
-
-const UNIQUE_FAKE_WORDS = Array.from(new Set(FAKE_WORDS)).filter(w => w !== CORRECT_WORD);
-const ALL_WORDS = UNIQUE_FAKE_WORDS.concat([CORRECT_WORD]);
-const CORRECT_WORD_INDEX = ALL_WORDS.length - 1;
 
 // 難易度ごとのダミー出現確率（fakeRate）
 const DIFFICULTY_SETTINGS = {
@@ -1105,4 +1098,3 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
-
