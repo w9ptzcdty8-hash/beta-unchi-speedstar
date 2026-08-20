@@ -216,7 +216,7 @@ function getTitleInfo(totalMs) {
     if (sec < 3.00) return { rank: "s", name: "⚡ 光速のうんちマスター" };
     if (sec < 4.00) return { rank: "a", name: "💩 ベテランうんちハンター" };
     if (sec < 6.00) return { rank: "b", name: "🏃 見習いうんちハンター" };
-    if (sec < 8.00) return { rank: "c", name: "🐢 のんびりうんち鑑賞家" };
+    if (sec < 10.00) return { rank: "c", name: "🐢 のんびりうんち鑑賞家" };
     return { rank: "d", name: "💤 うんち初心者" };
 }
 
