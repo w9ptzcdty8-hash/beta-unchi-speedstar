@@ -63,7 +63,7 @@ const UNIQUE_FAKE_WORDS = Array.from(new Set(FAKE_WORDS)).filter(w => w !== CORR
 const ALL_WORDS = UNIQUE_FAKE_WORDS.concat([CORRECT_WORD]);
 const CORRECT_WORD_INDEX = ALL_WORDS.length - 1;
 
-// CHG-001: 難易度ごとのダミー出現確率（fakeRate）
+// 難易度ごとのダミー出現確率（fakeRate）
 const DIFFICULTY_SETTINGS = {
     1: { name: "EASY", min: 1000, max: 1300, fakeRate: 0.60 },   // 正解率40%
     2: { name: "NORMAL", min: 600, max: 1300, fakeRate: 0.70 }, // 正解率30%
@@ -71,7 +71,7 @@ const DIFFICULTY_SETTINGS = {
     4: { name: "CHAOS", min: 100, max: 1300, fakeRate: 0.85 }   // 正解率15%
 };
 
-// CHG-002: 「ひとりであそぶ」の進行構成変更 (ラウンド2を NORMAL に)
+// 「ひとりであそぶ」の進行構成 (ラウンド2を NORMAL に)
 const SINGLE_LEVEL_PROGRESSION = [1, 2, 2, 3, 4];
 const MISS_PENALTY_MS = 500;
 const LOCAL_HIGHSCORE_LIST_KEY = "unchiSpeedstar_highscore_list_ms";
@@ -216,7 +216,7 @@ function setWordTextWithAnimation(element, newText) {
     element.classList.add(animClass);
 }
 
-// FEAT-001: 合計タイムから称号情報を取得する純粋関数
+// 合計タイムから称号情報を取得する関数
 function getTitleInfo(totalMs) {
     const sec = totalMs / 1000;
     if (sec < 2.50) return { rank: "ss", name: "👑 神速のうんち神" };
@@ -238,7 +238,6 @@ const singleEls = {
     roundTimes: document.getElementById("single-round-times"),
     wordBlob: document.getElementById("single-word-blob"),
     wordText: document.getElementById("single-word-text"),
-    totalTime: document.getElementById("single-total-time"),
     wordElapsed: document.getElementById("single-word-elapsed"),
     quitBtn: document.getElementById("btn-single-quit"),
     resultTotal: document.getElementById("single-result-total"),
@@ -253,8 +252,8 @@ let singleState = null;
 function createSingleState() {
     return {
         roundIndex: 0,
-        roundTimesMs: [0, 0, 0, 0, 0],
-        roundTapTimesMs: [0, 0, 0, 0, 0],       // 各ラウンドの純粋なタップ反応時間
+        roundTimesMs: [0, 0, 0, 0, 0],          // ペナルティ・見逃し込みの各ラウンド合計
+        roundTapTimesMs: [0, 0, 0, 0, 0],       // 純粋なタップ反応時間（お手つき・見逃しを含まない）
         roundMissedTimesMs: [0, 0, 0, 0, 0],    // 各ラウンドの見逃した正解タイム
         roundMissCounts: [0, 0, 0, 0, 0],       // 各ラウンドのお手つき回数
         wordTimeoutId: null,
@@ -263,10 +262,11 @@ function createSingleState() {
         wordIsActive: false,
         finished: false,
         isPaused: false,
-        elapsedTimerAnimId: null               // リアルタイム経過表示用アニメーションフレームID
+        elapsedTimerAnimId: null
     };
 }
 
+// 画面上部（HUD）の5回タイム表示：お手つき・見逃しを含まない「純粋なタップタイム」を表示
 function renderSingleRoundChips() {
     singleEls.roundTimes.innerHTML = "";
     for (let i = 0; i < 5; i++) {
@@ -274,7 +274,7 @@ function renderSingleRoundChips() {
         chip.className = "round-chip";
         if (i < singleState.roundIndex) {
             chip.classList.add("is-done");
-            chip.textContent = `${i + 1}: ${formatSeconds(singleState.roundTimesMs[i])}`;
+            chip.textContent = `${i + 1}: ${formatSeconds(singleState.roundTapTimesMs[i])}`;
         } else if (i === singleState.roundIndex) {
             chip.classList.add("is-current");
             chip.textContent = `${i + 1}回目`;
@@ -285,23 +285,14 @@ function renderSingleRoundChips() {
     }
 }
 
-function updateSingleTotalDisplay() {
-    const doneTotal = singleState.roundTimesMs
-        .slice(0, singleState.roundIndex)
-        .reduce((a, b) => a + b, 0);
-    singleEls.totalTime.textContent = `合計タイム：${formatSeconds(doneTotal)}`;
-}
-
-// リアルタイム単語経過時間の更新関数
+// リアルタイム単語経過時間の更新関数（正解タップ時は固定）
 function updateWordElapsedDisplay() {
     if (!singleState || singleState.finished) return;
 
-    if (singleState.wordIsActive && singleState.wordStartedAt > 0) {
+    if (!singleState.isPaused && singleState.wordIsActive && singleState.wordStartedAt > 0) {
         const now = performance.now();
         const elapsed = (now - singleState.wordStartedAt) / 1000;
         singleEls.wordElapsed.textContent = `単語経過: ${elapsed.toFixed(2)}秒`;
-    } else {
-        singleEls.wordElapsed.textContent = "単語経過: 0.00秒";
     }
 
     singleState.elapsedTimerAnimId = requestAnimationFrame(updateWordElapsedDisplay);
@@ -313,7 +304,6 @@ function startSinglePlay() {
     resetFeedback(singleEls.feedback, singleEls.stage);
     setWordTextWithAnimation(singleEls.wordText, "");
     renderSingleRoundChips();
-    updateSingleTotalDisplay();
     showScreen("single");
     scheduleSingleWord();
     
@@ -335,7 +325,7 @@ function scheduleSingleWord() {
 function showSingleWord(level) {
     if (!singleState || singleState.finished || singleState.isPaused) return;
 
-    // 前の単語が「うんち」で見逃されていた（タップされなかった）場合、その時間を記録・加算
+    // 前の単語が「うんち」で見逃されていた（タップされなかった）場合、その時間を加算
     if (singleState.wordIsActive && singleState.waitingForCorrectTap && singleState.wordStartedAt > 0) {
         const missedTime = performance.now() - singleState.wordStartedAt;
         singleState.roundMissedTimesMs[singleState.roundIndex] += missedTime;
@@ -369,6 +359,9 @@ function handleSingleTap() {
         // --- 正解 ---
         const reaction = performance.now() - singleState.wordStartedAt;
         singleState.roundTapTimesMs[singleState.roundIndex] = reaction;
+
+        // タップした瞬間の単語タイムを画面下に固定表示
+        singleEls.wordElapsed.textContent = `単語経過: ${(reaction / 1000).toFixed(2)}秒`;
 
         const missPenalty = singleState.roundMissCounts[singleState.roundIndex] * MISS_PENALTY_MS;
         singleState.roundTimesMs[singleState.roundIndex] += (reaction + missPenalty);
@@ -413,7 +406,6 @@ function advanceSingleRound() {
     singleState.roundIndex += 1;
 
     renderSingleRoundChips();
-    updateSingleTotalDisplay();
 
     if (singleState.roundIndex >= 5) {
         singleState.finished = true;
@@ -474,7 +466,7 @@ function finishSinglePlay() {
     singleEls.resultNewRecord.classList.toggle("is-hidden", !isNewTopRecord);
     singleEls.resultTotal.textContent = formatSeconds(totalMs);
     
-    // FEAT-001: リザルト画面での称号の表示
+    // リザルト画面での称号の表示
     const titleInfo = getTitleInfo(totalMs);
     const titleBadge = document.getElementById("single-result-title-badge");
     if (titleBadge) {
@@ -584,7 +576,7 @@ function renderHighscoreScreen() {
         highscoreEls.localList.innerHTML = '<li class="highscore-loading">記録なし</li>';
     } else {
         localBest.forEach((ms, index) => {
-            const titleInfo = getTitleInfo(ms); // FEAT-001: 称号情報を取得
+            const titleInfo = getTitleInfo(ms);
             const li = document.createElement("li");
             li.innerHTML = `
                 <span class="hs-rank">${index + 1}位</span>

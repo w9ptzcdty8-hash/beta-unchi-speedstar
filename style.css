@@ -423,21 +423,14 @@ button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-}
-
-.total-time {
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: var(--color-brown-dark);
+    gap: 6px;
 }
 
 /* 画面下のリアルタイム経過表示 */
 .word-elapsed-time {
-    font-size: 0.75rem;
+    font-size: 0.82rem;
     font-weight: 700;
-    color: #a08a6f;
+    color: #8A5A2E;
     min-height: 1.2em;
 }
 
@@ -641,7 +634,7 @@ button {
 }
 
 /* ========================================
-   称号バッジ (FEAT-001)
+   称号バッジ
 ======================================== */
 .title-badge {
     font-family: var(--font-display);
