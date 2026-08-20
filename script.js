@@ -208,6 +208,7 @@ function setWordTextWithAnimation(element, newText) {
     element.classList.add(animClass);
 }
 
+// 合計タイムから称号情報を取得する関数
 function getTitleInfo(totalMs) {
     const sec = totalMs / 1000;
     if (sec < 2.50) return { rank: "ss", name: "👑 神速のうんち神" };
@@ -257,6 +258,7 @@ function createSingleState() {
     };
 }
 
+// 画面上部（HUD）の5回タイム表示：お手つき・見逃しを含まない「純粋なタップタイム」を表示
 function renderSingleRoundChips() {
     singleEls.roundTimes.innerHTML = "";
     for (let i = 0; i < 5; i++) {
@@ -275,6 +277,7 @@ function renderSingleRoundChips() {
     }
 }
 
+// リアルタイム単語経過時間の更新関数（正解タップ時は固定、未表示時は0.00秒）
 function updateWordElapsedDisplay() {
     if (!singleState || singleState.finished) return;
 
@@ -282,6 +285,8 @@ function updateWordElapsedDisplay() {
         const now = performance.now();
         const elapsed = (now - singleState.wordStartedAt) / 1000;
         singleEls.wordElapsed.textContent = `単語経過: ${elapsed.toFixed(2)}秒`;
+    } else if (!singleState.isPaused) {
+        singleEls.wordElapsed.textContent = "単語経過: 0.00秒";
     }
 
     singleState.elapsedTimerAnimId = requestAnimationFrame(updateWordElapsedDisplay);
@@ -293,9 +298,16 @@ function startSinglePlay() {
     resetFeedback(singleEls.feedback, singleEls.stage);
     setWordTextWithAnimation(singleEls.wordText, "");
     renderSingleRoundChips();
+    
+    // 開始時に経過表示を即座に0.00秒にリセット
+    if (singleEls.wordElapsed) {
+        singleEls.wordElapsed.textContent = "単語経過: 0.00秒";
+    }
+
     showScreen("single");
     scheduleSingleWord();
     
+    // リアルタイム経過時間更新ループを開始
     updateWordElapsedDisplay();
 }
 
@@ -313,6 +325,7 @@ function scheduleSingleWord() {
 function showSingleWord(level) {
     if (!singleState || singleState.finished || singleState.isPaused) return;
 
+    // 前の単語が「うんち」で見逃されていた（タップされなかった）場合、その時間を加算
     if (singleState.wordIsActive && singleState.waitingForCorrectTap && singleState.wordStartedAt > 0) {
         const missedTime = performance.now() - singleState.wordStartedAt;
         singleState.roundMissedTimesMs[singleState.roundIndex] += missedTime;
@@ -343,9 +356,11 @@ function handleSingleTap() {
     }
 
     if (isCorrectTap) {
+        // --- 正解 ---
         const reaction = performance.now() - singleState.wordStartedAt;
         singleState.roundTapTimesMs[singleState.roundIndex] = reaction;
 
+        // タップした瞬間の単語タイムを画面下に固定表示
         singleEls.wordElapsed.textContent = `単語経過: ${(reaction / 1000).toFixed(2)}秒`;
 
         const missPenalty = singleState.roundMissCounts[singleState.roundIndex] * MISS_PENALTY_MS;
@@ -358,6 +373,7 @@ function handleSingleTap() {
         singleState.waitingForCorrectTap = false;
         singleState.wordStartedAt = 0;
 
+        // 2秒間エフェクトを表示後、次のラウンドへ
         window.setTimeout(() => {
             if (!singleState) return;
             singleState.isPaused = false;
@@ -366,6 +382,7 @@ function handleSingleTap() {
             advanceSingleRound();
         }, EFFECT_WAIT_MS);
     } else {
+        // --- お手つき（ダミー単語または文字未表示時のタップ） ---
         singleState.roundMissCounts[singleState.roundIndex] += 1;
         playSound("miss");
         triggerFeedback(singleEls.flash, singleEls.feedback, singleEls.stage, "bad");
@@ -374,6 +391,7 @@ function handleSingleTap() {
         singleState.waitingForCorrectTap = false;
         singleState.wordStartedAt = 0;
 
+        // 2秒間待機後、単語タイマーを再開
         window.setTimeout(() => {
             if (!singleState) return;
             singleState.isPaused = false;
@@ -397,6 +415,10 @@ function advanceSingleRound() {
 
     scheduleSingleWord();
 }
+
+// ----------------------------------------
+// ローカルハイスコア（ベスト5管理）
+// ----------------------------------------
 
 function getLocalHighscores() {
     const raw = window.localStorage.getItem(LOCAL_HIGHSCORE_LIST_KEY);
@@ -443,6 +465,7 @@ function finishSinglePlay() {
     singleEls.resultNewRecord.classList.toggle("is-hidden", !isNewTopRecord);
     singleEls.resultTotal.textContent = formatSeconds(totalMs);
     
+    // リザルト画面での称号の表示
     const titleInfo = getTitleInfo(totalMs);
     const titleBadge = document.getElementById("single-result-title-badge");
     if (titleBadge) {
@@ -453,6 +476,7 @@ function finishSinglePlay() {
 
     singleEls.resultDetail.innerHTML = "";
 
+    // 各ラウンドのタイム内訳（タップタイム・見逃し・お手つき）を表示
     for (let i = 0; i < 5; i++) {
         const row = document.createElement("div");
         row.className = "result-row";
@@ -544,6 +568,7 @@ function getStoredPlayerName() {
 }
 
 function renderHighscoreScreen() {
+    // ローカルベスト5表示
     const localBest = getLocalHighscores();
     highscoreEls.localList.innerHTML = "";
     if (localBest.length === 0) {
@@ -561,6 +586,7 @@ function renderHighscoreScreen() {
         });
     }
 
+    // オンラインランキング（上位10件）表示
     highscoreEls.ranking.innerHTML = '<li class="highscore-loading">読み込み中…</li>';
 
     if (!firebaseReady) {
