@@ -141,9 +141,10 @@
                 <div class="word-blob" id="multi-word-blob">
                     <span class="word-text" id="multi-word-text"></span>
                 </div>
+                <div class="multi-penalty-text" id="multi-penalty-text"></div>
             </div>
 
-            <div class="difficulty-badge" id="multi-difficulty-badge">EASY</div>
+            <div class="difficulty-badge" id="multi-difficulty-badge">NORMAL</div>
         </section>
 
         <!-- ============================
@@ -151,7 +152,9 @@
         ============================= -->
         <section id="screen-multi-result" class="screen">
             <h2 class="result-title" id="multi-result-title">けっか発表！</h2>
-            <div class="scoreboard" id="multi-result-scoreboard"></div>
+            
+            <p class="field-label">最終順位・ポイント</p>
+            <ol class="multi-result-ranking" id="multi-result-ranking"></ol>
 
             <div class="menu">
                 <button id="btn-multi-result-to-title" class="btn btn-main">タイトルへ</button>
@@ -198,4 +201,3 @@
     <script type="module" src="script.js"></script>
 </body>
 </html>
-

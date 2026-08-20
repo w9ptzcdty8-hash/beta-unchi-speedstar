@@ -330,7 +330,7 @@ button {
 .flash-overlay.flash-good { background-color: var(--color-good); opacity: 0.35; }
 .flash-overlay.flash-bad { background-color: var(--color-bad); opacity: 0.35; }
 
-/* 正解／お手つきエフェクトは画面上部に固定表示し、単語（.word-blob）と重ならないようにする */
+/* 正解／お手つきエフェクト */
 .feedback-badge {
     position: fixed;
     top: calc(env(safe-area-inset-top) + 130px);
@@ -365,7 +365,7 @@ button {
 /* 2秒間維持するお手つきバッジ */
 .feedback-badge.badge-bad {
     color: #E8483C;
-    font-size: clamp(1.4rem, 5.5vw, 2rem);
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
     background: rgba(255, 255, 255, 0.95);
     padding: 8px 18px;
     border-radius: 16px;
@@ -432,6 +432,17 @@ button {
     font-weight: 700;
     color: #8A5A2E;
     min-height: 1.2em;
+}
+
+/* マルチプレイ用ペナルティリアルタイム表示 */
+.multi-penalty-text {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: var(--color-bad);
+    min-height: 1.4em;
+    text-align: center;
+    margin-top: 4px;
 }
 
 /* 結果画面 */
@@ -577,6 +588,41 @@ button {
     color: #ffffff;
 }
 
+/* 対戦リザルト画面用ランキング */
+.multi-result-ranking {
+    list-style: none;
+    margin: 8px 0 16px;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.multi-result-ranking li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 2px solid var(--color-bg-soft);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--color-brown-dark);
+}
+
+.multi-result-ranking li.rank-1 {
+    border-color: var(--color-mustard);
+    background: #FFFDF0;
+}
+
+.multi-result-ranking .res-score {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--color-lavender-dark);
+}
+
 /* ハイスコア */
 .highscore-card {
     width: 100%;
@@ -682,4 +728,3 @@ button {
     font-weight: 700;
     color: var(--color-lavender-dark);
 }
-
